@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  
+  <title>distributed-system:leture 1 | Hexo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="第一课，mapreduce相关内容">
+<meta property="og:type" content="article">
+<meta property="og:title" content="distributed-system:leture 1">
+<meta property="og:url" content="http://example.com/2023/09/17/distributed-system_leture%201/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="第一课，mapreduce相关内容">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2023-09-17T15:12:24.000Z">
+<meta property="article:modified_time" content="2023-09-18T15:51:54.303Z">
+<meta property="article:author" content="John Doe">
+<meta name="twitter:card" content="summary">
+  
+    <link rel="alternate" href="/atom.xml" title="Hexo" type="application/atom+xml">
+  
+  
+    <link rel="shortcut icon" href="/favicon.png">
+  
+  
+    
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@0.0.71/index.min.css">
+
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">Hexo</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"><span class="fa fa-bars"></span></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+        
+          <a class="nav-icon" href="/atom.xml" title="RSS Feed"><span class="fa fa-rss"></span></a>
+        
+        <a class="nav-icon nav-search-btn" title="Search"><span class="fa fa-search"></span></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://example.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main"><article id="post-distributed-system_leture 1" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2023/09/17/distributed-system_leture%201/" class="article-date">
+  <time class="dt-published" datetime="2023-09-17T15:12:24.000Z" itemprop="datePublished">2023-09-17</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="p-name article-title" itemprop="headline name">
+      distributed-system:leture 1
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>第一课，mapreduce相关内容</p>
+<span id="more"></span>
+<h1 id="论文阅读"><a href="#论文阅读" class="headerlink" title="论文阅读"></a>论文阅读</h1><h2 id="MapReduce-背景"><a href="#MapReduce-背景" class="headerlink" title="MapReduce 背景"></a>MapReduce 背景</h2><p>MapReduce简介：MapReduce是一种编程模型，用于处理和生成大规模数据集。用户指定一个map函数，用于处理输入的键&#x2F;值对，生成一组中间的键&#x2F;值对；以及一个reduce函数，用于合并具有相同中间键的所有值。<br>MapReduce实现：MapReduce利用用户定义的map和reduce函数，自动地将计算并行化并在大规模的集群上执行。运行时系统负责分割输入数据，调度程序在多台机器上执行，处理机器故障，以及管理机器间的通信。<br>MapReduce应用：MapReduce可以表达许多实际中的任务，例如分布式grep、URL访问频率统计、反向链接图构建、词向量生成、倒排索引构建和分布式排序等。<br>MapReduce类型：MapReduce的输入和输出都是键&#x2F;值对的集合，但它们可以来自不同的域。中间的键&#x2F;值对也是来自输出域的。用户可以使用字符串来转换不同类型的数据。<br>MapReduce扩展：MapReduce提供了一些扩展功能，例如自定义分区函数、排序保证、组合函数、输入和输出类型、副作用处理、错误记录跳过、本地执行、状态信息和计数器等。<br>MapReduce与其他并行计算模型的比较：MapReduce是一种简化和提炼了一些并行计算模型的编程模型，它根据Google的大规模实际计算的经验，自动地实现了并行化、容错、局部性优化和负载均衡。<br>MapReduce与其他分布式系统的比较：MapReduce与一些提供高级抽象的分布式系统不同，它利用了一种受限的编程模型，使得用户程序可以自动地被并行化和容错。MapReduce还与一些针对特定应用的分布式系统不同，它提供了一个通用的库，可以用于各种类型的数据处理任务。<br>MapReduce的灵感来源：MapReduce借鉴了一些技术，如主动磁盘、网络排序、分布式队列、数据分散和重复执行等，来提高性能、可扩展性和容错性。<br>MapReduce的结论：MapReduce编程模型在Google被成功地用于多种目的，因为它易于使用、适用于多种问题、能够扩展到大量机器，并且有效地利用了机器资源。1作者从这项工作中学到了一些经验，如限制编程模型可以简化并行化和容错、网络带宽是稀缺资源、重复执行可以减少非均匀性的影响等。</p>
+<h2 id="MapReduce-运行逻辑"><a href="#MapReduce-运行逻辑" class="headerlink" title="MapReduce 运行逻辑"></a>MapReduce 运行逻辑</h2><p>可以理解为，将原有的多节点并行计算相关的操作封装了，只暴露了两个函数map和reduce，这两个函数由用户编写，注册到MapReduce框架中。</p>
+<h3 id="基本思想"><a href="#基本思想" class="headerlink" title="基本思想"></a>基本思想</h3><p>split（数据分割）-&gt;map（数据转换）-&gt;shuffle（数据分类）-&gt;reduce（合并数据）<br>MapReduce把所有的计算都拆分成两个基本的计算操作，即Map和Reduce。其中Map函数以一系列键值对作为输入，然后输出一个中间文件。这个中间态是另一种形式的键值对。最后，Reduce函数将这个中间态作为输入，计算得出结果。</p>
+<h3 id="运作规则"><a href="#运作规则" class="headerlink" title="运作规则"></a>运作规则</h3><ol>
+<li>MapReduce客户端会将输入的文件会分为M个片段，每个片段的大小通常在 16~64 MB 之间。然后在多个机器上开始运行MapReduce程序。</li>
+<li>系统中会有一个机器被选为Master节点，整个 MapReduce 计算包含M个Map 任务和R个 Reduce 任务。Master节点会为空闲的 Worker节点分配Map任务和 Reduce 任务</li>
+<li>执行Map任务的 Worker开始读入自己对应的片段并将读入的数据解析为输入键值对。然后调用由用户定义的 Map任务。最后，Worker会将Map任务输出的结果存在内存中。</li>
+<li>在执行Map的同时，Map Worker根据Partition 函数将产生的中间结果分为R个部分，然后定期将内存中的中间文件存入到自己的本地磁盘中。任务完成时，Mapper 便会将中间文件在其本地磁盘上的存放位置报告给 Master。</li>
+<li>Master会将中间文件存放位置通知给Reduce Work。Reduce Worker接收到这些信息后便会通过RPC读取中间文件。在读取完毕后，Reduce Worker会对读取到的数据进行排序，保证拥有相同键的键值对能够连续分布。</li>
+<li>最后，Reduce Worker会为每个键收集与其关联的值的集合，并调用用户定义的Reduce 函数。Reduce 函数的结果会被放入到对应的结果文件。</li>
+<li>当所有Map和Reduce都结束后，程序会换新客户端并返回结果。</li>
+</ol>
+<h2 id="分布式容错方案"><a href="#分布式容错方案" class="headerlink" title="分布式容错方案"></a>分布式容错方案</h2><p>分布式系统不可避免地要考虑容错的问题，在MapReduce中，容错也考虑Master和Work两种情况。</p>
+<h3 id="Master出错"><a href="#Master出错" class="headerlink" title="Master出错"></a>Master出错</h3><p>Master节点会定期地将当前运行状态存为快照，当Master节点崩溃，就从最近的快照恢复然后重新执行任务。</p>
+<h3 id="worker出错"><a href="#worker出错" class="headerlink" title="worker出错"></a>worker出错</h3><p>Master节点会定期地Ping每个Work节点，一旦发现Work节点不可达，针对其当前执行的是Map还是Reduce任务，会有不同的策略。</p>
+<ol>
+<li>Map任务，无论任务已完成或是未完成，都会废除当前节点的任务。Master会将任务重新分配给其他节点，同时由于已经生成的中间文件不可访问，还会通知还未拿到中间文件的Reduce Worker去新的节点拿数据。</li>
+<li>Reduce任务，由于结果文件存在GFS中，文件的可用性和一致性由GFS保证，所以Master仅将未完成的任务重新分配。</li>
+</ol>
+<h2 id="MapReduce优化策略"><a href="#MapReduce优化策略" class="headerlink" title="MapReduce优化策略"></a>MapReduce优化策略</h2><p>简单来说就是调节负载<br>如果集群中有某个 Worker 花了特别长的时间来完成最后的几个 Map 或 Reduce 任务，整个 MapReduce 计算任务的耗时就会因此被拖长，这样的 Worker 也就成了落后者。MapReduce 在整个计算完成到一定程度时就会将剩余的任务即同时将其分配给其他空闲 Worker 来执行，并在其中一个 Worker 完成后将该任务视作已完成。</p>
+<h1 id="课堂笔记"><a href="#课堂笔记" class="headerlink" title="课堂笔记"></a>课堂笔记</h1><h2 id="分布式系统需要克服的问题"><a href="#分布式系统需要克服的问题" class="headerlink" title="分布式系统需要克服的问题"></a>分布式系统需要克服的问题</h2><p>并行、容错性、通信物理距离、数据安全与隔离问题<br>分布式系统的并发和错误是关键难点</p>
+<h2 id="分布式系统的基础架构"><a href="#分布式系统的基础架构" class="headerlink" title="分布式系统的基础架构"></a>分布式系统的基础架构</h2><p>希望能有抽象的接口，让分布式接口更接近非分布式的接口</p>
+<h3 id="存储"><a href="#存储" class="headerlink" title="存储"></a>存储</h3><p>希望更抽象，容错、高性能</p>
+<h3 id="通信"><a href="#通信" class="headerlink" title="通信"></a>通信</h3><p>网络通信 可靠性 MIT6.829</p>
+<h3 id="计算"><a href="#计算" class="headerlink" title="计算"></a>计算</h3><p>类似mapreduce</p>
+<h2 id="分布式系统所需要的技术"><a href="#分布式系统所需要的技术" class="headerlink" title="分布式系统所需要的技术"></a>分布式系统所需要的技术</h2><p>RPC：掩盖在非可靠网络上的事实<br>线程：并发<br>锁：并发</p>
+<h2 id="分布式系统的性能目标"><a href="#分布式系统的性能目标" class="headerlink" title="分布式系统的性能目标"></a>分布式系统的性能目标</h2><p>可扩展性：性能可扩展性，加计算机就能加同等的性能</p>
+<h2 id="容错性"><a href="#容错性" class="headerlink" title="容错性"></a>容错性</h2><h3 id="可用性"><a href="#可用性" class="headerlink" title="可用性"></a>可用性</h3>
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2023/09/17/distributed-system_leture%201/" data-id="clmp2xkzw0000q0t67gxs517h" data-title="distributed-system:leture 1" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+  
+    <a href="/2023/09/17/%E7%AE%97%E6%B3%95%EF%BC%9A%E5%8D%95%E8%B0%83%E9%98%9F%E5%88%97/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">算法：单调队列</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+
+  
+    
+
+  
+    
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/09/">September 2023</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2023/09/17/distributed-system_leture%201/">distributed-system:leture 1</a>
+          </li>
+        
+          <li>
+            <a href="/2023/09/17/%E7%AE%97%E6%B3%95%EF%BC%9A%E5%8D%95%E8%B0%83%E9%98%9F%E5%88%97/">算法：单调队列</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      
+      &copy; 2023 John Doe<br>
+      Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+
+<script src="/js/jquery-3.6.4.min.js"></script>
+
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+
+  </div>
+</body>
+</html>
