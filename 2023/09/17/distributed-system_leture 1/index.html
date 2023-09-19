@@ -6,15 +6,15 @@
   
   <title>distributed-system:leture 1 | Hexo</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-  <meta name="description" content="第一课，mapreduce相关内容">
+  <meta name="description" content="第一课，分布式系统概述与mapreduce相关内容">
 <meta property="og:type" content="article">
 <meta property="og:title" content="distributed-system:leture 1">
 <meta property="og:url" content="http://example.com/2023/09/17/distributed-system_leture%201/index.html">
 <meta property="og:site_name" content="Hexo">
-<meta property="og:description" content="第一课，mapreduce相关内容">
+<meta property="og:description" content="第一课，分布式系统概述与mapreduce相关内容">
 <meta property="og:locale" content="en_US">
 <meta property="article:published_time" content="2023-09-17T15:12:24.000Z">
-<meta property="article:modified_time" content="2023-09-18T15:51:54.303Z">
+<meta property="article:modified_time" content="2023-09-19T15:53:23.012Z">
 <meta property="article:author" content="John Doe">
 <meta name="twitter:card" content="summary">
   
@@ -97,7 +97,7 @@
     
     <div class="e-content article-entry" itemprop="articleBody">
       
-        <p>第一课，mapreduce相关内容</p>
+        <p>第一课，分布式系统概述与mapreduce相关内容</p>
 <span id="more"></span>
 <h1 id="论文阅读"><a href="#论文阅读" class="headerlink" title="论文阅读"></a>论文阅读</h1><h2 id="MapReduce-背景"><a href="#MapReduce-背景" class="headerlink" title="MapReduce 背景"></a>MapReduce 背景</h2><p>MapReduce简介：MapReduce是一种编程模型，用于处理和生成大规模数据集。用户指定一个map函数，用于处理输入的键&#x2F;值对，生成一组中间的键&#x2F;值对；以及一个reduce函数，用于合并具有相同中间键的所有值。<br>MapReduce实现：MapReduce利用用户定义的map和reduce函数，自动地将计算并行化并在大规模的集群上执行。运行时系统负责分割输入数据，调度程序在多台机器上执行，处理机器故障，以及管理机器间的通信。<br>MapReduce应用：MapReduce可以表达许多实际中的任务，例如分布式grep、URL访问频率统计、反向链接图构建、词向量生成、倒排索引构建和分布式排序等。<br>MapReduce类型：MapReduce的输入和输出都是键&#x2F;值对的集合，但它们可以来自不同的域。中间的键&#x2F;值对也是来自输出域的。用户可以使用字符串来转换不同类型的数据。<br>MapReduce扩展：MapReduce提供了一些扩展功能，例如自定义分区函数、排序保证、组合函数、输入和输出类型、副作用处理、错误记录跳过、本地执行、状态信息和计数器等。<br>MapReduce与其他并行计算模型的比较：MapReduce是一种简化和提炼了一些并行计算模型的编程模型，它根据Google的大规模实际计算的经验，自动地实现了并行化、容错、局部性优化和负载均衡。<br>MapReduce与其他分布式系统的比较：MapReduce与一些提供高级抽象的分布式系统不同，它利用了一种受限的编程模型，使得用户程序可以自动地被并行化和容错。MapReduce还与一些针对特定应用的分布式系统不同，它提供了一个通用的库，可以用于各种类型的数据处理任务。<br>MapReduce的灵感来源：MapReduce借鉴了一些技术，如主动磁盘、网络排序、分布式队列、数据分散和重复执行等，来提高性能、可扩展性和容错性。<br>MapReduce的结论：MapReduce编程模型在Google被成功地用于多种目的，因为它易于使用、适用于多种问题、能够扩展到大量机器，并且有效地利用了机器资源。1作者从这项工作中学到了一些经验，如限制编程模型可以简化并行化和容错、网络带宽是稀缺资源、重复执行可以减少非均匀性的影响等。</p>
 <h2 id="MapReduce-运行逻辑"><a href="#MapReduce-运行逻辑" class="headerlink" title="MapReduce 运行逻辑"></a>MapReduce 运行逻辑</h2><p>可以理解为，将原有的多节点并行计算相关的操作封装了，只暴露了两个函数map和reduce，这两个函数由用户编写，注册到MapReduce框架中。</p>
@@ -120,17 +120,34 @@
 </ol>
 <h2 id="MapReduce优化策略"><a href="#MapReduce优化策略" class="headerlink" title="MapReduce优化策略"></a>MapReduce优化策略</h2><p>简单来说就是调节负载<br>如果集群中有某个 Worker 花了特别长的时间来完成最后的几个 Map 或 Reduce 任务，整个 MapReduce 计算任务的耗时就会因此被拖长，这样的 Worker 也就成了落后者。MapReduce 在整个计算完成到一定程度时就会将剩余的任务即同时将其分配给其他空闲 Worker 来执行，并在其中一个 Worker 完成后将该任务视作已完成。</p>
 <h1 id="课堂笔记"><a href="#课堂笔记" class="headerlink" title="课堂笔记"></a>课堂笔记</h1><h2 id="分布式系统需要克服的问题"><a href="#分布式系统需要克服的问题" class="headerlink" title="分布式系统需要克服的问题"></a>分布式系统需要克服的问题</h2><p>并行、容错性、通信物理距离、数据安全与隔离问题<br>分布式系统的并发和错误是关键难点</p>
-<h2 id="分布式系统的基础架构"><a href="#分布式系统的基础架构" class="headerlink" title="分布式系统的基础架构"></a>分布式系统的基础架构</h2><p>希望能有抽象的接口，让分布式接口更接近非分布式的接口</p>
+<h2 id="分布式系统的基础架构"><a href="#分布式系统的基础架构" class="headerlink" title="分布式系统的基础架构"></a>分布式系统的基础架构</h2><p>分布式的基础架构包括存储、通信、计算三个模块；希望能有抽象的接口，让分布式接口更接近非分布式的接口</p>
 <h3 id="存储"><a href="#存储" class="headerlink" title="存储"></a>存储</h3><p>希望更抽象，容错、高性能</p>
-<h3 id="通信"><a href="#通信" class="headerlink" title="通信"></a>通信</h3><p>网络通信 可靠性 MIT6.829</p>
+<h3 id="通信"><a href="#通信" class="headerlink" title="通信"></a>通信</h3><p>网络通信 可靠性 详细内容见MIT6.829</p>
 <h3 id="计算"><a href="#计算" class="headerlink" title="计算"></a>计算</h3><p>类似mapreduce</p>
-<h2 id="分布式系统所需要的技术"><a href="#分布式系统所需要的技术" class="headerlink" title="分布式系统所需要的技术"></a>分布式系统所需要的技术</h2><p>RPC：掩盖在非可靠网络上的事实<br>线程：并发<br>锁：并发</p>
-<h2 id="分布式系统的性能目标"><a href="#分布式系统的性能目标" class="headerlink" title="分布式系统的性能目标"></a>分布式系统的性能目标</h2><p>可扩展性：性能可扩展性，加计算机就能加同等的性能</p>
-<h2 id="容错性"><a href="#容错性" class="headerlink" title="容错性"></a>容错性</h2><h3 id="可用性"><a href="#可用性" class="headerlink" title="可用性"></a>可用性</h3>
+<h2 id="分布式系统所需要的技术"><a href="#分布式系统所需要的技术" class="headerlink" title="分布式系统所需要的技术"></a>分布式系统所需要的技术</h2><ol>
+<li>RPC：掩盖在非可靠网络上的事实</li>
+<li>线程：并发</li>
+<li>锁：并发</li>
+</ol>
+<h2 id="分布式系统的性能目标"><a href="#分布式系统的性能目标" class="headerlink" title="分布式系统的性能目标"></a>分布式系统的性能目标</h2><h3 id="可扩展性"><a href="#可扩展性" class="headerlink" title="可扩展性"></a>可扩展性</h3><p>性能可扩展性，加硬件设备就能增加同规模的性能</p>
+<h3 id="容错性"><a href="#容错性" class="headerlink" title="容错性"></a>容错性</h3><ol>
+<li>可用性：在出现了不可避免的故障后，系统仍能正常工作（冗余）</li>
+<li>可恢复性：出现故障后，系统可以通过各种方式恢复到正常状态（非易失存储）</li>
+</ol>
+<h3 id="一致性"><a href="#一致性" class="headerlink" title="一致性"></a>一致性</h3><p>一致性包括强一致性和弱一致性，各有优劣</p>
+<ol>
+<li>强一致性：每次读出的数据都是最新的</li>
+<li>弱一致性：允许读出的数据没有被更新<br>强一致性代价高，需要的通信成本高。尤其是副本数据存储物理距离较远时，通信成本将会限制强一致性的保证。所以弱一致性是工业界常用的技术。</li>
+</ol>
+<h2 id="MapReduce"><a href="#MapReduce" class="headerlink" title="MapReduce"></a>MapReduce</h2><h3 id="工作方式"><a href="#工作方式" class="headerlink" title="工作方式"></a>工作方式</h3><p>将分布式问题分为map和reduce两个函数，map将输入转换成中间键值对，reduce将中间键值对进行聚合计算。<br>整个mapreduce的过程称为一个job（作业），一次mapreduce的过程称为一个task（任务）。</p>
+<h3 id="map函数"><a href="#map函数" class="headerlink" title="map函数"></a>map函数</h3><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">map参数解释：key通常是不需要的，例如文件名、行号等，value是需要处理的，如文件实际内容</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"><span class="built_in">map</span>(key, value) &#123;</span><br><span class="line">    <span class="keyword">for</span> each word in value:</span><br><span class="line">        <span class="built_in">emit</span>(word, <span class="number">1</span>);</span><br><span class="line">    <span class="comment">//对于value里的每一个单词，都需要将其组成一个新的key-value对发送</span></span><br><span class="line">    <span class="comment">//map函数里的emit接受两个参数，就是key value</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="reduce函数"><a href="#reduce函数" class="headerlink" title="reduce函数"></a>reduce函数</h3><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">reduce的输入既是map函数的输出，相同的中间key会发送给同一个reduce函数</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"><span class="built_in">reduce</span>(key, value) &#123;</span><br><span class="line">    <span class="built_in">emit</span>(<span class="built_in">len</span>(value));</span><br><span class="line">    <span class="comment">// reduce里的emit通常只有一个输出参数</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h1 id="实验"><a href="#实验" class="headerlink" title="实验"></a>实验</h1>
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://example.com/2023/09/17/distributed-system_leture%201/" data-id="clmp2ya3d0000fct6folt2vor" data-title="distributed-system:leture 1" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      <a data-url="http://example.com/2023/09/17/distributed-system_leture%201/" data-id="clmqhwh040000fct61jwyeves" data-title="distributed-system:leture 1" class="article-share-link"><span class="fa fa-share">Share</span></a>
       
       
       
