@@ -13,10 +13,12 @@
 <meta property="og:site_name" content="Hexo">
 <meta property="og:description" content="第一课，分布式系统概述与mapreduce相关内容">
 <meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://pdos.csail.mit.edu/6.824/labs/lab-mr.html">
 <meta property="article:published_time" content="2023-09-17T15:12:24.000Z">
-<meta property="article:modified_time" content="2023-09-19T15:53:23.012Z">
+<meta property="article:modified_time" content="2023-09-21T16:47:25.207Z">
 <meta property="article:author" content="John Doe">
 <meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://pdos.csail.mit.edu/6.824/labs/lab-mr.html">
   
     <link rel="alternate" href="/oliviablog.github.io/atom.xml" title="Hexo" type="application/atom+xml">
   
@@ -143,11 +145,35 @@
 <h3 id="map函数"><a href="#map函数" class="headerlink" title="map函数"></a>map函数</h3><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">map参数解释：key通常是不需要的，例如文件名、行号等，value是需要处理的，如文件实际内容</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"><span class="built_in">map</span>(key, value) &#123;</span><br><span class="line">    <span class="keyword">for</span> each word in value:</span><br><span class="line">        <span class="built_in">emit</span>(word, <span class="number">1</span>);</span><br><span class="line">    <span class="comment">//对于value里的每一个单词，都需要将其组成一个新的key-value对发送</span></span><br><span class="line">    <span class="comment">//map函数里的emit接受两个参数，就是key value</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <h3 id="reduce函数"><a href="#reduce函数" class="headerlink" title="reduce函数"></a>reduce函数</h3><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">reduce的输入既是map函数的输出，相同的中间key会发送给同一个reduce函数</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"><span class="built_in">reduce</span>(key, value) &#123;</span><br><span class="line">    <span class="built_in">emit</span>(<span class="built_in">len</span>(value));</span><br><span class="line">    <span class="comment">// reduce里的emit通常只有一个输出参数</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<h1 id="实验"><a href="#实验" class="headerlink" title="实验"></a>实验</h1>
+<h1 id="实验"><a href="#实验" class="headerlink" title="实验"></a>实验</h1><p>在进行了一部分的go尝试后，虽然听说lab2用C++不好写，但还是决定拿起我的C++（果真是最爱），go语法有点怪怪的</p>
+<h2 id="环境搭建"><a href="#环境搭建" class="headerlink" title="环境搭建"></a>环境搭建</h2><p>在Windows物理机上使用wsl2安装Ubuntu18.04，按照<img src="https://pdos.csail.mit.edu/6.824/labs/lab-mr.html" alt="课程指引"> 配置环境，值得注意的是，clone下来的代码跑不动的时候需要修改包的相对路径</p>
+<h2 id="实验大体要求"><a href="#实验大体要求" class="headerlink" title="实验大体要求"></a>实验大体要求</h2><ol>
+<li>两个程序 Coordinator(协调者)和Worker(工作者)，系统中有一个Coordinator和多个Worker进程并行执行。</li>
+<li>进程间通信使用<strong>RPC</strong>进行，通信主要存在于coordinator和worker之间，通信内容是worker和coordinator之间的任务分发、数据来源地址、任务执行、输出写入地址</li>
+<li>当coordinator发现worker长时间没有完成任务（10s）时，需要将该任务发布给其他worker</li>
+</ol>
+<h2 id="详细规则"><a href="#详细规则" class="headerlink" title="详细规则"></a>详细规则</h2><ol>
+<li>map阶段应该将中间键分到不同的组里，将这些组传给<strong>nReduce</strong>个reduce任务。nReduce应该是MakeCoordinator()的参数（目前理解：建立Coordinator的时候就得指定有多少个reduce任务）</li>
+<li>worker执行reduce任务时输出文件名应该统一成mr-out-X（X是reduce任务的编号，[0, nReduce - 1]）</li>
+<li>mr-out-X文件中每行包含一个Reduce函数产生的结果，应该使用Go中的“%v %v”格式，来写入reduce后的key和value</li>
+<li>worker执行Map任务时，输出存到当前目录的文件，这样之后该文件作为reduce工作的输入能够被读到。</li>
+<li>当所有工作结束，worker进程也应该退出。一个简单的办法是，每次调用call()函数时查看其返回值，如果返回值显示不能正常与coordinator通信，那么就假定工作已经结束且coordinator已经退出，因此worker也可以结束。这取决于你的设计，也可以设计”please exit”作为coordinator给worker的伪任务，来提提示worker的退出。</li>
+</ol>
+<h2 id="实验梳理"><a href="#实验梳理" class="headerlink" title="实验梳理"></a>实验梳理</h2><h3 id="结构"><a href="#结构" class="headerlink" title="结构"></a>结构</h3><ol>
+<li>master项目里有Coordinator和Task及其子类</li>
+<li>worker项目里有Worker和Task及其子类</li>
+</ol>
+<h3 id="功能"><a href="#功能" class="headerlink" title="功能"></a>功能</h3><ol>
+<li>Cooridinator不需要多实例运行。Cooridinator里需要创建一个连接池，连上不同的worker后放池子里，需要分配map、reduce任务时可以在池子里选一个worker运行</li>
+<li>Worker项目需要多实例运行，得多开。</li>
+<li>任务<strong>Task</strong>可以作为一个父类，<strong>Map</strong>和<strong>Reduce</strong>作为子类，实现run接口，由于传入参数不一样，故需要解析参数的不同接口parseArgs。</li>
+</ol>
+<h2 id="RPC补充信息"><a href="#RPC补充信息" class="headerlink" title="RPC补充信息"></a>RPC补充信息</h2><p>RPC（Remote Procedure Call Protocol）远程过程调用协议。一个通俗的描述是：客户端在不知道调用细节的情况下，调用存在于远程计算机上的某个对象，就像调用本地应用程序中的对象一样。比较正式的描述是：一种通过网络从远程计算机程序上请求服务，而不需要了解底层网络技术的协议。</p>
+
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://olive-2019.github.io/oliviablog.github.io/2023/09/17/distributed-system_leture%201/" data-id="clmqhwh040000fct61jwyeves" data-title="distributed-system:leture 1" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      <a data-url="https://olive-2019.github.io/oliviablog.github.io/2023/09/17/distributed-system_leture%201/" data-id="clmuscmjb0000jwt65c5j6wv9" data-title="distributed-system:leture 1" class="article-share-link"><span class="fa fa-share">Share</span></a>
       
       
       
