@@ -13,12 +13,10 @@
 <meta property="og:site_name" content="Hexo">
 <meta property="og:description" content="第一课，分布式系统概述与mapreduce相关内容">
 <meta property="og:locale" content="en_US">
-<meta property="og:image" content="https://pdos.csail.mit.edu/6.824/labs/lab-mr.html">
 <meta property="article:published_time" content="2023-09-17T15:12:24.000Z">
-<meta property="article:modified_time" content="2023-09-21T16:47:25.207Z">
+<meta property="article:modified_time" content="2023-09-23T16:40:00.988Z">
 <meta property="article:author" content="John Doe">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="https://pdos.csail.mit.edu/6.824/labs/lab-mr.html">
   
     <link rel="alternate" href="/oliviablog.github.io/atom.xml" title="Hexo" type="application/atom+xml">
   
@@ -146,7 +144,7 @@
 <h3 id="reduce函数"><a href="#reduce函数" class="headerlink" title="reduce函数"></a>reduce函数</h3><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">reduce的输入既是map函数的输出，相同的中间key会发送给同一个reduce函数</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"><span class="built_in">reduce</span>(key, value) &#123;</span><br><span class="line">    <span class="built_in">emit</span>(<span class="built_in">len</span>(value));</span><br><span class="line">    <span class="comment">// reduce里的emit通常只有一个输出参数</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 <h1 id="实验"><a href="#实验" class="headerlink" title="实验"></a>实验</h1><p>在进行了一部分的go尝试后，虽然听说lab2用C++不好写，但还是决定拿起我的C++（果真是最爱），go语法有点怪怪的</p>
-<h2 id="环境搭建"><a href="#环境搭建" class="headerlink" title="环境搭建"></a>环境搭建</h2><p>在Windows物理机上使用wsl2安装Ubuntu18.04，按照<img src="https://pdos.csail.mit.edu/6.824/labs/lab-mr.html" alt="课程指引"> 配置环境，值得注意的是，clone下来的代码跑不动的时候需要修改包的相对路径</p>
+<h2 id="环境搭建"><a href="#环境搭建" class="headerlink" title="环境搭建"></a>环境搭建</h2><p>在Windows物理机上使用wsl2安装Ubuntu18.04，按照<a target="_blank" rel="noopener" href="https://pdos.csail.mit.edu/6.824/labs/lab-mr.html">课程指引</a> 配置环境，值得注意的是，clone下来的代码跑不动的时候需要修改包的相对路径</p>
 <h2 id="实验大体要求"><a href="#实验大体要求" class="headerlink" title="实验大体要求"></a>实验大体要求</h2><ol>
 <li>两个程序 Coordinator(协调者)和Worker(工作者)，系统中有一个Coordinator和多个Worker进程并行执行。</li>
 <li>进程间通信使用<strong>RPC</strong>进行，通信主要存在于coordinator和worker之间，通信内容是worker和coordinator之间的任务分发、数据来源地址、任务执行、输出写入地址</li>
@@ -159,21 +157,45 @@
 <li>worker执行Map任务时，输出存到当前目录的文件，这样之后该文件作为reduce工作的输入能够被读到。</li>
 <li>当所有工作结束，worker进程也应该退出。一个简单的办法是，每次调用call()函数时查看其返回值，如果返回值显示不能正常与coordinator通信，那么就假定工作已经结束且coordinator已经退出，因此worker也可以结束。这取决于你的设计，也可以设计”please exit”作为coordinator给worker的伪任务，来提提示worker的退出。</li>
 </ol>
+<h2 id="论文细节描述"><a href="#论文细节描述" class="headerlink" title="论文细节描述"></a>论文细节描述</h2><ol>
+<li>MapReduce库首先将<strong>输入文件分成M个片段</strong>，每个片段通常为16到64兆字节（MB）（用户可以通过可选参数进行控制）。</li>
+<li>在机群上启动多个程序。其中一个程序是特殊的，Master。其余的程序是由Master分配工作的Worker。有M个map任务和R个reduce任务需要分配。Master选择空闲的Worker，并为每个工作程序分配一个map任务或reduce任务。</li>
+<li>被分配map任务的Worker读取相应输入片段的内容。它从输入数据中<strong>解析</strong>出键&#x2F;值对，并将每个键&#x2F;值对<strong>传递</strong>给用户定义的map函数。Map函数生成的中间键&#x2F;值对在内存中进行缓冲。</li>
+<li>定期将缓冲的键&#x2F;值对按照分区函数<strong>划分为R个区域</strong>（需要排序吗？），并将这些缓冲区在本地磁盘上的位置传递回Master，由Master负责将这些位置转发给reducer。</li>
+<li>当reducer收到Master关于这些位置的通知时，它使用<strong>远程过程</strong>调用从map工作程序的本地磁盘读取缓冲数据。当reducer读取所有中间数据时，它按照中间键对其进行<strong>排序</strong>，以便将相同键的所有出现组合在一起。如果中间数据量太大无法放入内存，则使用外部排序。</li>
+<li>reducer遍历排序后的中间数据，并对遇到的每个<strong>唯一中间键</strong>传递该键和相应的一组中间值给用户定义的reduce函数。Reduce函数的输出附加到此reduce分区的最终输出文件中。</li>
+</ol>
 <h2 id="实验梳理"><a href="#实验梳理" class="headerlink" title="实验梳理"></a>实验梳理</h2><h3 id="结构"><a href="#结构" class="headerlink" title="结构"></a>结构</h3><ol>
-<li>master项目里有Coordinator和Task及其子类</li>
-<li>worker项目里有Worker和Task及其子类</li>
+<li>Coordinator项目里有Coordinator和WorkerState，不必关心mapper和reducer的具体任务，只需要做分配调度的工作</li>
+<li>worker项目里有Worker和Task及其子类，根据调用runTask的参数决定运行mapper还是reducer的任务</li>
 </ol>
 <h3 id="功能"><a href="#功能" class="headerlink" title="功能"></a>功能</h3><ol>
-<li>Cooridinator不需要多实例运行。Cooridinator里需要创建一个连接池，连上不同的worker后放池子里，需要分配map、reduce任务时可以在池子里选一个worker运行</li>
+<li>Cooridinator不需要多实例运行。Cooridinator里需要创建一个worker池，将注册的不同worker放池子里，需要分配map、reduce任务时可以在池子里选一个worker运行，并修改其状态，该worker池需要考虑并发问题，操作时要加锁。</li>
 <li>Worker项目需要多实例运行，得多开。</li>
+<li>Cooridinator和Worker通信时，调用类成员函数时不清楚是否需要传this指针，如果不行的话，可以考虑写成静态函数</li>
 <li>任务<strong>Task</strong>可以作为一个父类，<strong>Map</strong>和<strong>Reduce</strong>作为子类，实现run接口，由于传入参数不一样，故需要解析参数的不同接口parseArgs。</li>
 </ol>
-<h2 id="RPC补充信息"><a href="#RPC补充信息" class="headerlink" title="RPC补充信息"></a>RPC补充信息</h2><p>RPC（Remote Procedure Call Protocol）远程过程调用协议。一个通俗的描述是：客户端在不知道调用细节的情况下，调用存在于远程计算机上的某个对象，就像调用本地应用程序中的对象一样。比较正式的描述是：一种通过网络从远程计算机程序上请求服务，而不需要了解底层网络技术的协议。</p>
+<h2 id="RPC补充信息"><a href="#RPC补充信息" class="headerlink" title="RPC补充信息"></a>RPC补充信息</h2><p>RPC（Remote Procedure Call Protocol）远程过程调用协议。一个通俗的描述是：客户端在不知道调用细节的情况下，调用存在于远程计算机上的某个对象，就像调用本地应用程序中的对象一样。比较正式的描述是：一种通过网络从远程计算机程序上请求服务，而不需要了解底层网络技术的协议。<br>本项目使用rest_rpc，配置过程如下</p>
+<h3 id="安装boost"><a href="#安装boost" class="headerlink" title="安装boost"></a>安装boost</h3><ol>
+<li>从<a target="_blank" rel="noopener" href="https://www.boost.org/">boost官网</a>上下载最新boost的zip版本</li>
+<li>将压缩包解压到合适的路径</li>
+<li>双击根目录下的bootstrap.bat文件，生成b2.exe</li>
+<li>双击b2.exe运行</li>
+<li>VS studio 配置项目属性-&gt;VC++目录<br>(1) “包含目录”: boost的根目录，例:C:\boost_1_79_0<br>(2) “库目录”: stage下的链接库目录，例:C:\boost_1_79_0\stage\lib</li>
+<li>配置属性-&gt;链接器-&gt;常规:”附加库目录”:同上面的”库目录”，例:D:\my_workspace\C_program\C_boost\boost_1_79_0\stage\lib</li>
+</ol>
+<h3 id="下载rest-rpc"><a href="#下载rest-rpc" class="headerlink" title="下载rest_rpc"></a>下载rest_rpc</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git <span class="built_in">clone</span> https://github.com/qicosmos/rest_rpc</span><br></pre></td></tr></table></figure>
+<h3 id="使用"><a href="#使用" class="headerlink" title="使用"></a>使用</h3><ol>
+<li>在server和client端都需要引入rest_rpc.hpp，此处需要注意其目录，如<code>#include &quot;../rest_rpc/include/rest_rpc.hpp&quot;</code></li>
+<li>引入名字空间<code>using namespace rest_rpc;</code></li>
+<li>server端：<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//第一个参数必须得是conn</span></span><br><span class="line"><span class="function">string <span class="title">hello</span><span class="params">(rpc_conn conn, string name)</span> </span>&#123;</span><br><span class="line">	<span class="comment">/*可以为 void 返回类型，代表调用后不给远程客户端返回消息*/</span></span><br><span class="line">	<span class="keyword">return</span> (<span class="string">&quot;Hello &quot;</span> + name); <span class="comment">/*返回给远程客户端的内容*/</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">	<span class="function">rpc_server <span class="title">server</span><span class="params">(<span class="number">9000</span>, <span class="number">6</span>)</span></span>;</span><br><span class="line">	server.<span class="built_in">register_handler</span>(<span class="string">&quot;func_greet&quot;</span>, hello);</span><br><span class="line">	server.<span class="built_in">run</span>();<span class="comment">//启动服务端</span></span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+<li>client端<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">try</span> &#123;</span><br><span class="line">    <span class="comment">/*建立连接*/</span></span><br><span class="line">    <span class="function">rpc_client <span class="title">client</span><span class="params">(<span class="string">&quot;127.0.0.1&quot;</span>, <span class="number">9000</span>)</span></span>;<span class="comment">// IP 地址，端口号</span></span><br><span class="line">    <span class="comment">/*设定超时 5s（不填默认为 3s），connect 超时返回 false，成功返回 true*/</span></span><br><span class="line">    <span class="type">bool</span> has_connected = client.<span class="built_in">connect</span>(<span class="number">5</span>);</span><br><span class="line">    <span class="comment">/*没有建立连接则退出程序*/</span></span><br><span class="line">    <span class="keyword">if</span> (!has_connected) &#123;</span><br><span class="line">        cout &lt;&lt; <span class="string">&quot;connect timeout&quot;</span> &lt;&lt; endl;</span><br><span class="line">        <span class="built_in">exit</span>(<span class="number">-1</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/*调用远程服务，返回欢迎信息*/</span></span><br><span class="line">    string result = client.<span class="built_in">call</span>&lt;std::string&gt;(<span class="string">&quot;func_greet&quot;</span>, <span class="string">&quot;Lam&quot;</span>);<span class="comment">// func_greet 为事先注册好的服务名，需要一个 name 参数，这里为 Hello Github 的缩写 HG</span></span><br><span class="line">    cout &lt;&lt; result &lt;&lt; endl;</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">/*遇到连接错误、调用服务时参数不对等情况会抛出异常*/</span></span><br><span class="line"><span class="built_in">catch</span> (<span class="type">const</span> exception&amp; e) &#123;</span><br><span class="line">    cout &lt;&lt; e.<span class="built_in">what</span>() &lt;&lt; endl;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+</ol>
 
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://olive-2019.github.io/oliviablog.github.io/2023/09/17/distributed-system_leture%201/" data-id="clmushnx400001wt69t1tfgdm" data-title="distributed-system:leture 1" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      <a data-url="https://olive-2019.github.io/oliviablog.github.io/2023/09/17/distributed-system_leture%201/" data-id="clmw9b4so00007wt6g7m01bkm" data-title="distributed-system:leture 1" class="article-share-link"><span class="fa fa-share">Share</span></a>
       
       
       
