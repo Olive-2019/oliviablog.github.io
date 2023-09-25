@@ -14,7 +14,7 @@
 <meta property="og:description" content="第一课，分布式系统概述与mapreduce相关内容">
 <meta property="og:locale" content="en_US">
 <meta property="article:published_time" content="2023-09-17T15:12:24.000Z">
-<meta property="article:modified_time" content="2023-09-23T16:40:00.988Z">
+<meta property="article:modified_time" content="2023-09-25T16:17:22.724Z">
 <meta property="article:author" content="John Doe">
 <meta name="twitter:card" content="summary">
   
@@ -166,13 +166,13 @@
 <li>reducer遍历排序后的中间数据，并对遇到的每个<strong>唯一中间键</strong>传递该键和相应的一组中间值给用户定义的reduce函数。Reduce函数的输出附加到此reduce分区的最终输出文件中。</li>
 </ol>
 <h2 id="实验梳理"><a href="#实验梳理" class="headerlink" title="实验梳理"></a>实验梳理</h2><h3 id="结构"><a href="#结构" class="headerlink" title="结构"></a>结构</h3><ol>
-<li>Coordinator项目里有Coordinator和WorkerState，不必关心mapper和reducer的具体任务，只需要做分配调度的工作</li>
+<li>Coordinator项目里有Coordinator和WorkerState，不必关心mapper和reducer的具体任务，只需要做分配调度的工作。其中Coordinator依赖WorkerState完成调度任务，WorkerState管理单个Worker</li>
 <li>worker项目里有Worker和Task及其子类，根据调用runTask的参数决定运行mapper还是reducer的任务</li>
 </ol>
 <h3 id="功能"><a href="#功能" class="headerlink" title="功能"></a>功能</h3><ol>
-<li>Cooridinator不需要多实例运行。Cooridinator里需要创建一个worker池，将注册的不同worker放池子里，需要分配map、reduce任务时可以在池子里选一个worker运行，并修改其状态，该worker池需要考虑并发问题，操作时要加锁。</li>
-<li>Worker项目需要多实例运行，得多开。</li>
-<li>Cooridinator和Worker通信时，调用类成员函数时不清楚是否需要传this指针，如果不行的话，可以考虑写成静态函数</li>
+<li>Cooridinator不需要多实例运行。Cooridinator里需要创建一个worker池，将注册的不同worker放池子里，需要分配map、reduce任务时可以在池子里选一个worker运行，并修改其状态，该worker池需要考虑并发问题，写操作时加了一把大锁。</li>
+<li>Worker项目需要多实例运行，得多开，运行时需要传入参数决定其端口。</li>
+<li>Cooridinator和Worker通信时，注意端口不能硬编码，减少幻数</li>
 <li>任务<strong>Task</strong>可以作为一个父类，<strong>Map</strong>和<strong>Reduce</strong>作为子类，实现run接口，由于传入参数不一样，故需要解析参数的不同接口parseArgs。</li>
 </ol>
 <h2 id="RPC补充信息"><a href="#RPC补充信息" class="headerlink" title="RPC补充信息"></a>RPC补充信息</h2><p>RPC（Remote Procedure Call Protocol）远程过程调用协议。一个通俗的描述是：客户端在不知道调用细节的情况下，调用存在于远程计算机上的某个对象，就像调用本地应用程序中的对象一样。比较正式的描述是：一种通过网络从远程计算机程序上请求服务，而不需要了解底层网络技术的协议。<br>本项目使用rest_rpc，配置过程如下</p>
@@ -195,7 +195,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://olive-2019.github.io/oliviablog.github.io/2023/09/17/distributed-system_leture%201/" data-id="clmw9b4so00007wt6g7m01bkm" data-title="distributed-system:leture 1" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      <a data-url="https://olive-2019.github.io/oliviablog.github.io/2023/09/17/distributed-system_leture%201/" data-id="clmz3eqxx0000swt648d249p1" data-title="distributed-system:leture 1" class="article-share-link"><span class="fa fa-share">Share</span></a>
       
       
       
