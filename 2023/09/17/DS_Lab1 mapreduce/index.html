@@ -1,101 +1,211 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <meta charset="utf-8">
-  
-  
-  <title>distributed-system:leture 1 | Hexo</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 6.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/oliviablog.github.io/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/oliviablog.github.io/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/oliviablog.github.io/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/oliviablog.github.io/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/oliviablog.github.io/css/main.css">
+
+
+<link rel="stylesheet" href="/oliviablog.github.io/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"olive-2019.github.io","root":"/oliviablog.github.io/","scheme":"Pisces","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
   <meta name="description" content="第一课，分布式系统概述与mapreduce相关内容">
 <meta property="og:type" content="article">
-<meta property="og:title" content="distributed-system:leture 1">
-<meta property="og:url" content="https://olive-2019.github.io/oliviablog.github.io/2023/09/17/distributed-system_leture%201/index.html">
+<meta property="og:title" content="分布式系统 MapReduce">
+<meta property="og:url" content="https://olive-2019.github.io/oliviablog.github.io/2023/09/17/DS_Lab1%20mapreduce/index.html">
 <meta property="og:site_name" content="Hexo">
 <meta property="og:description" content="第一课，分布式系统概述与mapreduce相关内容">
 <meta property="og:locale" content="en_US">
 <meta property="article:published_time" content="2023-09-17T15:12:24.000Z">
-<meta property="article:modified_time" content="2023-09-25T16:17:22.724Z">
+<meta property="article:modified_time" content="2023-09-30T06:51:36.269Z">
 <meta property="article:author" content="John Doe">
+<meta property="article:tag" content="MapReduce">
+<meta property="article:tag" content="分布式系统">
+<meta property="article:tag" content="mit 6.824">
 <meta name="twitter:card" content="summary">
-  
-    <link rel="alternate" href="/oliviablog.github.io/atom.xml" title="Hexo" type="application/atom+xml">
-  
-  
-    <link rel="shortcut icon" href="/oliviablog.github.io/favicon.png">
-  
-  
-    
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@0.0.71/index.min.css">
 
-  
-  
-<link rel="stylesheet" href="/oliviablog.github.io/css/style.css">
+<link rel="canonical" href="https://olive-2019.github.io/oliviablog.github.io/2023/09/17/DS_Lab1%20mapreduce/">
 
-  
-    
-<link rel="stylesheet" href="/oliviablog.github.io/fancybox/jquery.fancybox.min.css">
 
-  
-  
-<meta name="generator" content="Hexo 6.3.0"></head>
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
 
-<body>
-  <div id="container">
-    <div id="wrap">
-      <header id="header">
-  <div id="banner"></div>
-  <div id="header-outer" class="outer">
-    <div id="header-title" class="inner">
-      <h1 id="logo-wrap">
-        <a href="/oliviablog.github.io/" id="logo">Hexo</a>
-      </h1>
-      
-    </div>
-    <div id="header-inner" class="inner">
-      <nav id="main-nav">
-        <a id="main-nav-toggle" class="nav-icon"><span class="fa fa-bars"></span></a>
-        
-          <a class="main-nav-link" href="/oliviablog.github.io/">Home</a>
-        
-          <a class="main-nav-link" href="/oliviablog.github.io/archives">Archives</a>
-        
-      </nav>
-      <nav id="sub-nav">
-        
-        
-          <a class="nav-icon" href="/oliviablog.github.io/atom.xml" title="RSS Feed"><span class="fa fa-rss"></span></a>
-        
-        <a class="nav-icon nav-search-btn" title="Search"><span class="fa fa-search"></span></a>
-      </nav>
-      <div id="search-form-wrap">
-        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="https://olive-2019.github.io/oliviablog.github.io"></form>
-      </div>
+  <title>分布式系统 MapReduce | Hexo</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
     </div>
   </div>
-</header>
 
-      <div class="outer">
-        <section id="main"><article id="post-distributed-system_leture 1" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
-  <div class="article-meta">
-    <a href="/oliviablog.github.io/2023/09/17/distributed-system_leture%201/" class="article-date">
-  <time class="dt-published" datetime="2023-09-17T15:12:24.000Z" itemprop="datePublished">2023-09-17</time>
-</a>
-    
+  <div class="site-meta">
+
+    <a href="/oliviablog.github.io/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Hexo</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
   </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 class="p-name article-title" itemprop="headline name">
-      distributed-system:leture 1
-    </h1>
-  
 
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/oliviablog.github.io/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/oliviablog.github.io/about/" rel="section"><i class="fa fa-user fa-fw"></i>About</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/oliviablog.github.io/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/oliviablog.github.io/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://olive-2019.github.io/oliviablog.github.io/2023/09/17/DS_Lab1%20mapreduce/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/oliviablog.github.io/images/avatar.gif">
+      <meta itemprop="name" content="John Doe">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Hexo">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          分布式系统 MapReduce
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2023-09-17 23:12:24" itemprop="dateCreated datePublished" datetime="2023-09-17T23:12:24+08:00">2023-09-17</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2023-09-30 14:51:36" itemprop="dateModified" datetime="2023-09-30T14:51:36+08:00">2023-09-30</time>
+              </span>
+
+          
+
+        </div>
       </header>
+
     
-    <div class="e-content article-entry" itemprop="articleBody">
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
       
         <p>第一课，分布式系统概述与mapreduce相关内容</p>
 <span id="more"></span>
@@ -192,126 +302,197 @@
 <li>client端<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">try</span> &#123;</span><br><span class="line">    <span class="comment">/*建立连接*/</span></span><br><span class="line">    <span class="function">rpc_client <span class="title">client</span><span class="params">(<span class="string">&quot;127.0.0.1&quot;</span>, <span class="number">9000</span>)</span></span>;<span class="comment">// IP 地址，端口号</span></span><br><span class="line">    <span class="comment">/*设定超时 5s（不填默认为 3s），connect 超时返回 false，成功返回 true*/</span></span><br><span class="line">    <span class="type">bool</span> has_connected = client.<span class="built_in">connect</span>(<span class="number">5</span>);</span><br><span class="line">    <span class="comment">/*没有建立连接则退出程序*/</span></span><br><span class="line">    <span class="keyword">if</span> (!has_connected) &#123;</span><br><span class="line">        cout &lt;&lt; <span class="string">&quot;connect timeout&quot;</span> &lt;&lt; endl;</span><br><span class="line">        <span class="built_in">exit</span>(<span class="number">-1</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/*调用远程服务，返回欢迎信息*/</span></span><br><span class="line">    string result = client.<span class="built_in">call</span>&lt;std::string&gt;(<span class="string">&quot;func_greet&quot;</span>, <span class="string">&quot;Lam&quot;</span>);<span class="comment">// func_greet 为事先注册好的服务名，需要一个 name 参数，这里为 Hello Github 的缩写 HG</span></span><br><span class="line">    cout &lt;&lt; result &lt;&lt; endl;</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">/*遇到连接错误、调用服务时参数不对等情况会抛出异常*/</span></span><br><span class="line"><span class="built_in">catch</span> (<span class="type">const</span> exception&amp; e) &#123;</span><br><span class="line">    cout &lt;&lt; e.<span class="built_in">what</span>() &lt;&lt; endl;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
 </ol>
 
-      
     </div>
-    <footer class="article-footer">
-      <a data-url="https://olive-2019.github.io/oliviablog.github.io/2023/09/17/distributed-system_leture%201/" data-id="clmz3eqxx0000swt648d249p1" data-title="distributed-system:leture 1" class="article-share-link"><span class="fa fa-share">Share</span></a>
-      
-      
-      
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/oliviablog.github.io/tags/MapReduce/" rel="tag"># MapReduce</a>
+              <a href="/oliviablog.github.io/tags/%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F/" rel="tag"># 分布式系统</a>
+              <a href="/oliviablog.github.io/tags/mit-6-824/" rel="tag"># mit 6.824</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/oliviablog.github.io/2023/09/17/%E7%AE%97%E6%B3%95%EF%BC%9A%E5%8D%95%E8%B0%83%E9%98%9F%E5%88%97/" rel="prev" title="算法：单调队列">
+      <i class="fa fa-chevron-left"></i> 算法：单调队列
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/oliviablog.github.io/2023/09/30/%E5%A4%9A%E7%8A%B6%E6%80%81DP/" rel="next" title="多状态DP：买卖股票的最佳时机 III">
+      多状态DP：买卖股票的最佳时机 III <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB"><span class="nav-number">1.</span> <span class="nav-text">论文阅读</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#MapReduce-%E8%83%8C%E6%99%AF"><span class="nav-number">1.1.</span> <span class="nav-text">MapReduce 背景</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#MapReduce-%E8%BF%90%E8%A1%8C%E9%80%BB%E8%BE%91"><span class="nav-number">1.2.</span> <span class="nav-text">MapReduce 运行逻辑</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%9F%BA%E6%9C%AC%E6%80%9D%E6%83%B3"><span class="nav-number">1.2.1.</span> <span class="nav-text">基本思想</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%BF%90%E4%BD%9C%E8%A7%84%E5%88%99"><span class="nav-number">1.2.2.</span> <span class="nav-text">运作规则</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%88%86%E5%B8%83%E5%BC%8F%E5%AE%B9%E9%94%99%E6%96%B9%E6%A1%88"><span class="nav-number">1.3.</span> <span class="nav-text">分布式容错方案</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Master%E5%87%BA%E9%94%99"><span class="nav-number">1.3.1.</span> <span class="nav-text">Master出错</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#worker%E5%87%BA%E9%94%99"><span class="nav-number">1.3.2.</span> <span class="nav-text">worker出错</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#MapReduce%E4%BC%98%E5%8C%96%E7%AD%96%E7%95%A5"><span class="nav-number">1.4.</span> <span class="nav-text">MapReduce优化策略</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E8%AF%BE%E5%A0%82%E7%AC%94%E8%AE%B0"><span class="nav-number">2.</span> <span class="nav-text">课堂笔记</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F%E9%9C%80%E8%A6%81%E5%85%8B%E6%9C%8D%E7%9A%84%E9%97%AE%E9%A2%98"><span class="nav-number">2.1.</span> <span class="nav-text">分布式系统需要克服的问题</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F%E7%9A%84%E5%9F%BA%E7%A1%80%E6%9E%B6%E6%9E%84"><span class="nav-number">2.2.</span> <span class="nav-text">分布式系统的基础架构</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AD%98%E5%82%A8"><span class="nav-number">2.2.1.</span> <span class="nav-text">存储</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%80%9A%E4%BF%A1"><span class="nav-number">2.2.2.</span> <span class="nav-text">通信</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%AE%A1%E7%AE%97"><span class="nav-number">2.2.3.</span> <span class="nav-text">计算</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F%E6%89%80%E9%9C%80%E8%A6%81%E7%9A%84%E6%8A%80%E6%9C%AF"><span class="nav-number">2.3.</span> <span class="nav-text">分布式系统所需要的技术</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F%E7%9A%84%E6%80%A7%E8%83%BD%E7%9B%AE%E6%A0%87"><span class="nav-number">2.4.</span> <span class="nav-text">分布式系统的性能目标</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%8F%AF%E6%89%A9%E5%B1%95%E6%80%A7"><span class="nav-number">2.4.1.</span> <span class="nav-text">可扩展性</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%B9%E9%94%99%E6%80%A7"><span class="nav-number">2.4.2.</span> <span class="nav-text">容错性</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%80%E8%87%B4%E6%80%A7"><span class="nav-number">2.4.3.</span> <span class="nav-text">一致性</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#MapReduce"><span class="nav-number">2.5.</span> <span class="nav-text">MapReduce</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%B7%A5%E4%BD%9C%E6%96%B9%E5%BC%8F"><span class="nav-number">2.5.1.</span> <span class="nav-text">工作方式</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#map%E5%87%BD%E6%95%B0"><span class="nav-number">2.5.2.</span> <span class="nav-text">map函数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#reduce%E5%87%BD%E6%95%B0"><span class="nav-number">2.5.3.</span> <span class="nav-text">reduce函数</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%AE%9E%E9%AA%8C"><span class="nav-number">3.</span> <span class="nav-text">实验</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA"><span class="nav-number">3.1.</span> <span class="nav-text">环境搭建</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%9E%E9%AA%8C%E5%A4%A7%E4%BD%93%E8%A6%81%E6%B1%82"><span class="nav-number">3.2.</span> <span class="nav-text">实验大体要求</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%AF%A6%E7%BB%86%E8%A7%84%E5%88%99"><span class="nav-number">3.3.</span> <span class="nav-text">详细规则</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%AE%BA%E6%96%87%E7%BB%86%E8%8A%82%E6%8F%8F%E8%BF%B0"><span class="nav-number">3.4.</span> <span class="nav-text">论文细节描述</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%9E%E9%AA%8C%E6%A2%B3%E7%90%86"><span class="nav-number">3.5.</span> <span class="nav-text">实验梳理</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BB%93%E6%9E%84"><span class="nav-number">3.5.1.</span> <span class="nav-text">结构</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%8A%9F%E8%83%BD"><span class="nav-number">3.5.2.</span> <span class="nav-text">功能</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#RPC%E8%A1%A5%E5%85%85%E4%BF%A1%E6%81%AF"><span class="nav-number">3.6.</span> <span class="nav-text">RPC补充信息</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%89%E8%A3%85boost"><span class="nav-number">3.6.1.</span> <span class="nav-text">安装boost</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%8B%E8%BD%BDrest-rpc"><span class="nav-number">3.6.2.</span> <span class="nav-text">下载rest_rpc</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BD%BF%E7%94%A8"><span class="nav-number">3.6.3.</span> <span class="nav-text">使用</span></a></li></ol></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">John Doe</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/oliviablog.github.io/archives/">
+        
+          <span class="site-state-item-count">4</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/oliviablog.github.io/tags/">
+          
+        <span class="site-state-item-count">3</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">John Doe</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://pisces.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
     </footer>
   </div>
-  
-    
-<nav id="article-nav">
-  
-    <a href="/oliviablog.github.io/2023/09/30/%E5%A4%9A%E7%8A%B6%E6%80%81DP/" id="article-nav-newer" class="article-nav-link-wrap">
-      <strong class="article-nav-caption">Newer</strong>
-      <div class="article-nav-title">
-        
-          多状态DP：买卖股票的最佳时机 III
-        
-      </div>
-    </a>
-  
-  
-    <a href="/oliviablog.github.io/2023/09/17/%E7%AE%97%E6%B3%95%EF%BC%9A%E5%8D%95%E8%B0%83%E9%98%9F%E5%88%97/" id="article-nav-older" class="article-nav-link-wrap">
-      <strong class="article-nav-caption">Older</strong>
-      <div class="article-nav-title">算法：单调队列</div>
-    </a>
-  
-</nav>
 
   
-</article>
+  <script src="/oliviablog.github.io/lib/anime.min.js"></script>
+  <script src="/oliviablog.github.io/lib/velocity/velocity.min.js"></script>
+  <script src="/oliviablog.github.io/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/oliviablog.github.io/js/utils.js"></script>
+
+<script src="/oliviablog.github.io/js/motion.js"></script>
 
 
-</section>
-        
-          <aside id="sidebar">
-  
-    
-
-  
-    
-
-  
-    
-  
-    
-  <div class="widget-wrap">
-    <h3 class="widget-title">Archives</h3>
-    <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/oliviablog.github.io/archives/2023/09/">September 2023</a></li></ul>
-    </div>
-  </div>
+<script src="/oliviablog.github.io/js/schemes/pisces.js"></script>
 
 
-  
-    
-  <div class="widget-wrap">
-    <h3 class="widget-title">Recent Posts</h3>
-    <div class="widget">
-      <ul>
-        
-          <li>
-            <a href="/oliviablog.github.io/2023/09/30/%E5%A4%9A%E7%8A%B6%E6%80%81DP/">多状态DP：买卖股票的最佳时机 III</a>
-          </li>
-        
-          <li>
-            <a href="/oliviablog.github.io/2023/09/17/distributed-system_leture%201/">distributed-system:leture 1</a>
-          </li>
-        
-          <li>
-            <a href="/oliviablog.github.io/2023/09/17/%E7%AE%97%E6%B3%95%EF%BC%9A%E5%8D%95%E8%B0%83%E9%98%9F%E5%88%97/">算法：单调队列</a>
-          </li>
-        
-      </ul>
-    </div>
-  </div>
+<script src="/oliviablog.github.io/js/next-boot.js"></script>
 
-  
-</aside>
-        
-      </div>
-      <footer id="footer">
-  
-  <div class="outer">
-    <div id="footer-info" class="inner">
-      
-      &copy; 2023 John Doe<br>
-      Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
-    </div>
-  </div>
-</footer>
-
-    </div>
-    <nav id="mobile-nav">
-  
-    <a href="/oliviablog.github.io/" class="mobile-nav-link">Home</a>
-  
-    <a href="/oliviablog.github.io/archives" class="mobile-nav-link">Archives</a>
-  
-</nav>
-    
-
-
-<script src="/oliviablog.github.io/js/jquery-3.6.4.min.js"></script>
 
 
 
   
-<script src="/oliviablog.github.io/fancybox/jquery.fancybox.min.js"></script>
-
-
-
-
-<script src="/oliviablog.github.io/js/script.js"></script>
 
 
 
 
 
-  </div>
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
 </body>
 </html>
