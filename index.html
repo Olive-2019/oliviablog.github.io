@@ -178,10 +178,16 @@
                 <i class="far fa-calendar"></i>
               </span>
               <span class="post-meta-item-text">Posted on</span>
-              
 
-              <time title="Created: 2023-09-30 14:51:56 / Modified: 21:24:54" itemprop="dateCreated datePublished" datetime="2023-09-30T14:51:56+08:00">2023-09-30</time>
+              <time title="Created: 2023-09-30 14:51:56" itemprop="dateCreated datePublished" datetime="2023-09-30T14:51:56+08:00">2023-09-30</time>
             </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2023-10-01 09:06:20" itemprop="dateModified" datetime="2023-10-01T09:06:20+08:00">2023-10-01</time>
+              </span>
 
           
 
@@ -194,64 +200,15 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <h1 id="论文阅读"><a href="#论文阅读" class="headerlink" title="论文阅读"></a>论文阅读</h1><h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h2><p>Google有大量数据存储的要求，所以诞生了GFS这个大规模分布式文件存储系统。根据工作负载和技术环境，GFS和传统文件系统有以下区别：</p>
-<ol>
-<li><strong>组件故障是常态</strong> 分布式设备廉价容易出故障，而且不易恢复。</li>
-<li><strong>文件大</strong></li>
-<li><strong>修改&#x3D;&#x3D;追加</strong> 不存在对文件的随机写，一旦写入就不再修改，通过追加的方式进行修改</li>
-<li>多客户端可能同时对文件进行原子追加操作</li>
-<li>高带宽比低延迟更重要</li>
-</ol>
-<h2 id="架构"><a href="#架构" class="headerlink" title="架构"></a>架构</h2><p>GFS集群由1个<strong>Master</strong>、n个<strong>chunk server</strong>、m个client组成。<br>这些东西都跑在普通的Linux服务器上。chunk server和client是可以在同一台服务器上跑的。</p>
-<h3 id="文件"><a href="#文件" class="headerlink" title="文件"></a>文件</h3><ol>
-<li>文件会被分块，每一块叫做一个chunk。</li>
-<li>每个chunk有一个64位的唯一标识chunk handle，这个标识是在分块的时候由master产生的。</li>
-<li>文件存储在chunk server上，通过chunk handle和字节范围读写。</li>
-<li>文件会存在副本，可以设置不同命名空间中文件的不同副本数量</li>
-</ol>
-<h3 id="存储与交互"><a href="#存储与交互" class="headerlink" title="存储与交互"></a>存储与交互</h3><p>master存储文件系统的元信息，包括以下内容：</p>
-<ol>
-<li>名字空间 namespace（文件名）</li>
-<li>文件-&gt;块 映射信息</li>
-<li>chunk位置信息（不需要持久化）</li>
-<li>访问控制信息<br>master还控制了系统活动，如</li>
-<li>租约管理</li>
-<li>孤儿块垃圾回收</li>
-<li>chunk server之间的块迁移</li>
-<li>master用心跳信息管理chunk server状态<br>client绝不跟master要数据，而是向master要元信息，发送一个包含文件名和块索引的请求，master返回chunk handle和副本位置；然后client再向chunk master请求具体文件。<br>这么做保证了单master的可行性</li>
-</ol>
-<h1 id="课程记录"><a href="#课程记录" class="headerlink" title="课程记录"></a>课程记录</h1><h2 id="分布式存储的难点"><a href="#分布式存储的难点" class="headerlink" title="分布式存储的难点"></a>分布式存储的难点</h2><p>追求<strong>高性能</strong>-&gt;将文件<strong>分片</strong>放在多个服务器上-&gt;更容易发生<strong>故障</strong>-&gt;需要<strong>容错</strong>措施-&gt;建立<strong>副本</strong>-&gt;追求<strong>一致性</strong>*-&gt;<strong>低性能</strong></p>
-<h2 id="GFS特点"><a href="#GFS特点" class="headerlink" title="GFS特点"></a>GFS特点</h2><ol>
-<li><strong>单数据中心</strong>：只在一个数据中心运行</li>
-<li><strong>工业软件</strong>：不面向普通用户</li>
-<li><strong>大规模顺序读写</strong>：不支持随机访问，更关注吞吐量（带宽）而不是时延</li>
-<li><strong>弱一致性</strong>：保证性能</li>
-<li><strong>单master</strong></li>
-</ol>
-<h2 id="GFS结构"><a href="#GFS结构" class="headerlink" title="GFS结构"></a>GFS结构</h2><p>master 存储元信息，chunk server 存储数据信息。两种服务器相互隔离</p>
-<h3 id="Master存储信息"><a href="#Master存储信息" class="headerlink" title="Master存储信息"></a>Master存储信息</h3><p>master中主要有两张表：</p>
-<ol>
-<li>filename-&gt; chunk handle（需要<strong>持久化</strong>）</li>
-<li>chunk handle-&gt;chunk servers</li>
-</ol>
-<ul>
-<li>chunk servers服务器列表：每个Chunk存储在哪些服务器上</li>
-<li>chunk版本号：每个Chunk当前的版本号（需要<strong>持久化</strong>）</li>
-<li>主chunk地址：所有对于Chunk的写操作都必须在主Chunk（Primary Chunk）上顺序处理，主Chunk是Chunk的多个副本之一。所以，Master节点必须记住哪个Chunk服务器持有主Chunk。</li>
-<li>主chunk租约到期时间：主Chunk只能在特定的租约时间内担任主Chunk，所以，Master节点要记住主Chunk的租约过期时间。</li>
-</ul>
-<p> 持久化的方式是<strong>写日志</strong>和<strong>打检查点</strong>。</p>
-<ul>
-<li>加入新chunk或者修改chunk版本时需要向磁盘写一条日志</li>
-<li>定时打checkpoints，将状态转移到磁盘中，恢复时选择最近的checkpoints，从该checkpoint后的日志开始恢复，而不必从猴年马月开始恢复。</li>
-</ul>
-<h2 id="Read读数据"><a href="#Read读数据" class="headerlink" title="Read读数据"></a>Read读数据</h2><h3 id="client和master-元信息交互"><a href="#client和master-元信息交互" class="headerlink" title="client和master 元信息交互"></a>client和master 元信息交互</h3><ol>
-<li>client 发送[filename文件名, offset偏移量]给master</li>
-<li>master从filename-&gt;chunk handle中查询<strong>chunk handle</strong>，offset &#x2F; chunk size 就是chunk handle在数组中的index，从而可以获取chunk handle</li>
-<li>master从chunk handle-&gt;chunk servers中查询<strong>chunk server</strong>的信息</li>
-<li>master将[chunk handle, chunk server]发送给client</li>
-</ol>
-<h3 id="client和chunk-server-数据交互"><a href="#client和chunk-server-数据交互" class="headerlink" title="client和chunk server 数据交互"></a>client和chunk server 数据交互</h3>
+          <p>Google File System，有点古老的技术，但技术仍存在参考意义</p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/oliviablog.github.io/2023/09/30/DS_Lab2%20GFS/#more" rel="contents">
+                Read more &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
       
     </div>
 

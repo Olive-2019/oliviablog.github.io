@@ -20,15 +20,15 @@
     var CONFIG = {"hostname":"olive-2019.github.io","root":"/oliviablog.github.io/","scheme":"Pisces","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
   </script>
 
-  <meta name="description" content="论文阅读背景Google有大量数据存储的要求，所以诞生了GFS这个大规模分布式文件存储系统。根据工作负载和技术环境，GFS和传统文件系统有以下区别：  组件故障是常态 分布式设备廉价容易出故障，而且不易恢复。 文件大 修改&#x3D;&#x3D;追加 不存在对文件的随机写，一旦写入就不再修改，通过追加的方式进行修改 多客户端可能同时对文件进行原子追加操作 高带宽比低延迟更重要  架构GFS集群由1">
+  <meta name="description" content="Google File System，有点古老的技术，但技术仍存在参考意义">
 <meta property="og:type" content="article">
 <meta property="og:title" content="分布式系统 GFS">
 <meta property="og:url" content="https://olive-2019.github.io/oliviablog.github.io/2023/09/30/DS_Lab2%20GFS/index.html">
 <meta property="og:site_name" content="Hexo">
-<meta property="og:description" content="论文阅读背景Google有大量数据存储的要求，所以诞生了GFS这个大规模分布式文件存储系统。根据工作负载和技术环境，GFS和传统文件系统有以下区别：  组件故障是常态 分布式设备廉价容易出故障，而且不易恢复。 文件大 修改&#x3D;&#x3D;追加 不存在对文件的随机写，一旦写入就不再修改，通过追加的方式进行修改 多客户端可能同时对文件进行原子追加操作 高带宽比低延迟更重要  架构GFS集群由1">
+<meta property="og:description" content="Google File System，有点古老的技术，但技术仍存在参考意义">
 <meta property="og:locale" content="en_US">
 <meta property="article:published_time" content="2023-09-30T06:51:56.000Z">
-<meta property="article:modified_time" content="2023-09-30T13:24:54.433Z">
+<meta property="article:modified_time" content="2023-10-01T01:06:20.991Z">
 <meta property="article:author" content="John Doe">
 <meta property="article:tag" content="分布式系统">
 <meta property="article:tag" content="mit6.824">
@@ -185,10 +185,16 @@
                 <i class="far fa-calendar"></i>
               </span>
               <span class="post-meta-item-text">Posted on</span>
-              
 
-              <time title="Created: 2023-09-30 14:51:56 / Modified: 21:24:54" itemprop="dateCreated datePublished" datetime="2023-09-30T14:51:56+08:00">2023-09-30</time>
+              <time title="Created: 2023-09-30 14:51:56" itemprop="dateCreated datePublished" datetime="2023-09-30T14:51:56+08:00">2023-09-30</time>
             </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2023-10-01 09:06:20" itemprop="dateModified" datetime="2023-10-01T09:06:20+08:00">2023-10-01</time>
+              </span>
 
           
 
@@ -201,7 +207,10 @@
     <div class="post-body" itemprop="articleBody">
 
       
-        <h1 id="论文阅读"><a href="#论文阅读" class="headerlink" title="论文阅读"></a>论文阅读</h1><h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h2><p>Google有大量数据存储的要求，所以诞生了GFS这个大规模分布式文件存储系统。根据工作负载和技术环境，GFS和传统文件系统有以下区别：</p>
+        <p>Google File System，有点古老的技术，但技术仍存在参考意义</p>
+<span id="more"></span>
+
+<h1 id="论文阅读"><a href="#论文阅读" class="headerlink" title="论文阅读"></a>论文阅读</h1><h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h2><p>Google有大量数据存储的要求，所以诞生了GFS这个大规模分布式文件存储系统。根据工作负载和技术环境，GFS和传统文件系统有以下区别：</p>
 <ol>
 <li><strong>组件故障是常态</strong> 分布式设备廉价容易出故障，而且不易恢复。</li>
 <li><strong>文件大</strong></li>
@@ -256,9 +265,30 @@
 <li>client 发送[filename文件名, offset偏移量]给master</li>
 <li>master从filename-&gt;chunk handle中查询<strong>chunk handle</strong>，offset &#x2F; chunk size 就是chunk handle在数组中的index，从而可以获取chunk handle</li>
 <li>master从chunk handle-&gt;chunk servers中查询<strong>chunk server</strong>的信息</li>
-<li>master将[chunk handle, chunk server]发送给client</li>
+<li>master将[chunk handle, chunk server]发送给client<br>client 会缓存 master返回的信息，因为可能会持续访问这个chunk<br>如果跨chunk访问，client端会自动分成两个读请求发给master</li>
 </ol>
-<h3 id="client和chunk-server-数据交互"><a href="#client和chunk-server-数据交互" class="headerlink" title="client和chunk server 数据交互"></a>client和chunk server 数据交互</h3>
+<h3 id="client和chunk-server-数据交互"><a href="#client和chunk-server-数据交互" class="headerlink" title="client和chunk server 数据交互"></a>client和chunk server 数据交互</h3><ol>
+<li>client 将[chunk handle, byte range]发送给选中的chunk server</li>
+<li>chunk server根据chunk handle找到文件，根据byte range获取数据，发回给client</li>
+</ol>
+<h2 id="Write写数据"><a href="#Write写数据" class="headerlink" title="Write写数据"></a>Write写数据</h2><p>GFS只追加数据，而不随机写数据。写数据时需要向持有primary chunk（主副本）的chunk server写入，当不清楚primary chunk时，需要进行以下操作</p>
+<h3 id="确定primary"><a href="#确定primary" class="headerlink" title="确定primary"></a>确定primary</h3><ol>
+<li>找到<strong>最新副本</strong>：chunk版本号&#x3D;&#x3D;master中记录chunk的版本号</li>
+<li>选中<strong>primary chunk</strong>：选择其中一个chunk server作为primary chunk，其他的就是secondary</li>
+<li>版本号自增</li>
+<li>告诉chunk server，primary、secondary 版本号</li>
+<li>master写入版本号</li>
+</ol>
+<h2 id="客户端和primary的交互"><a href="#客户端和primary的交互" class="headerlink" title="客户端和primary的交互"></a>客户端和primary的交互</h2><ol>
+<li>客户端将数据往chunk server（primary &amp; secondary）发</li>
+<li>chunk server会将数据写入临时区，并给client返回确认信息</li>
+<li>client给primary发送确定信息，意义为：你和所有secondary都有了数据，请写入chunk末尾</li>
+<li>primary调度并发请求，并以某种顺序，保证一次只执行一个请求，给所有secondary发送写请求</li>
+<li>所有chunk server收到写请求后，将临时区的数据往chunk里写，完成后给primary发送确认信息，意义为：已经成功写入数据</li>
+<li>如果primary收到了所有secondary的确认消息，则返回给client确认消息，否则，若存在一个异常（secondary没有回复or回复错误信息），primary向client报告失败</li>
+<li>client收到失败信息后会重新发起数据追加操作</li>
+</ol>
+
     </div>
 
     
@@ -340,7 +370,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB"><span class="nav-number">1.</span> <span class="nav-text">论文阅读</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%83%8C%E6%99%AF"><span class="nav-number">1.1.</span> <span class="nav-text">背景</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9E%B6%E6%9E%84"><span class="nav-number">1.2.</span> <span class="nav-text">架构</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%96%87%E4%BB%B6"><span class="nav-number">1.2.1.</span> <span class="nav-text">文件</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AD%98%E5%82%A8%E4%B8%8E%E4%BA%A4%E4%BA%92"><span class="nav-number">1.2.2.</span> <span class="nav-text">存储与交互</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E8%AF%BE%E7%A8%8B%E8%AE%B0%E5%BD%95"><span class="nav-number">2.</span> <span class="nav-text">课程记录</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%88%86%E5%B8%83%E5%BC%8F%E5%AD%98%E5%82%A8%E7%9A%84%E9%9A%BE%E7%82%B9"><span class="nav-number">2.1.</span> <span class="nav-text">分布式存储的难点</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#GFS%E7%89%B9%E7%82%B9"><span class="nav-number">2.2.</span> <span class="nav-text">GFS特点</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#GFS%E7%BB%93%E6%9E%84"><span class="nav-number">2.3.</span> <span class="nav-text">GFS结构</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Master%E5%AD%98%E5%82%A8%E4%BF%A1%E6%81%AF"><span class="nav-number">2.3.1.</span> <span class="nav-text">Master存储信息</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Read%E8%AF%BB%E6%95%B0%E6%8D%AE"><span class="nav-number">2.4.</span> <span class="nav-text">Read读数据</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#client%E5%92%8Cmaster-%E5%85%83%E4%BF%A1%E6%81%AF%E4%BA%A4%E4%BA%92"><span class="nav-number">2.4.1.</span> <span class="nav-text">client和master 元信息交互</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#client%E5%92%8Cchunk-server-%E6%95%B0%E6%8D%AE%E4%BA%A4%E4%BA%92"><span class="nav-number">2.4.2.</span> <span class="nav-text">client和chunk server 数据交互</span></a></li></ol></li></ol></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB"><span class="nav-number">1.</span> <span class="nav-text">论文阅读</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%83%8C%E6%99%AF"><span class="nav-number">1.1.</span> <span class="nav-text">背景</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9E%B6%E6%9E%84"><span class="nav-number">1.2.</span> <span class="nav-text">架构</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%96%87%E4%BB%B6"><span class="nav-number">1.2.1.</span> <span class="nav-text">文件</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AD%98%E5%82%A8%E4%B8%8E%E4%BA%A4%E4%BA%92"><span class="nav-number">1.2.2.</span> <span class="nav-text">存储与交互</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E8%AF%BE%E7%A8%8B%E8%AE%B0%E5%BD%95"><span class="nav-number">2.</span> <span class="nav-text">课程记录</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%88%86%E5%B8%83%E5%BC%8F%E5%AD%98%E5%82%A8%E7%9A%84%E9%9A%BE%E7%82%B9"><span class="nav-number">2.1.</span> <span class="nav-text">分布式存储的难点</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#GFS%E7%89%B9%E7%82%B9"><span class="nav-number">2.2.</span> <span class="nav-text">GFS特点</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#GFS%E7%BB%93%E6%9E%84"><span class="nav-number">2.3.</span> <span class="nav-text">GFS结构</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Master%E5%AD%98%E5%82%A8%E4%BF%A1%E6%81%AF"><span class="nav-number">2.3.1.</span> <span class="nav-text">Master存储信息</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Read%E8%AF%BB%E6%95%B0%E6%8D%AE"><span class="nav-number">2.4.</span> <span class="nav-text">Read读数据</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#client%E5%92%8Cmaster-%E5%85%83%E4%BF%A1%E6%81%AF%E4%BA%A4%E4%BA%92"><span class="nav-number">2.4.1.</span> <span class="nav-text">client和master 元信息交互</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#client%E5%92%8Cchunk-server-%E6%95%B0%E6%8D%AE%E4%BA%A4%E4%BA%92"><span class="nav-number">2.4.2.</span> <span class="nav-text">client和chunk server 数据交互</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Write%E5%86%99%E6%95%B0%E6%8D%AE"><span class="nav-number">2.5.</span> <span class="nav-text">Write写数据</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%A1%AE%E5%AE%9Aprimary"><span class="nav-number">2.5.1.</span> <span class="nav-text">确定primary</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%A2%E6%88%B7%E7%AB%AF%E5%92%8Cprimary%E7%9A%84%E4%BA%A4%E4%BA%92"><span class="nav-number">2.6.</span> <span class="nav-text">客户端和primary的交互</span></a></li></ol></li></ol></div>
       </div>
       <!--/noindex-->
 
