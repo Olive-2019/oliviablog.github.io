@@ -20,19 +20,21 @@
     var CONFIG = {"hostname":"olive-2019.github.io","root":"/oliviablog.github.io/","scheme":"Pisces","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
   </script>
 
-  <meta name="description" content="一个比较神奇的算法，可以高效的解决区间最值问题">
+  <meta name="description" content="VMware 的容错系统，走指令复制的路子">
 <meta property="og:type" content="article">
-<meta property="og:title" content="算法：单调队列">
-<meta property="og:url" content="https://olive-2019.github.io/oliviablog.github.io/2023/09/17/%E7%AE%97%E6%B3%95%EF%BC%9A%E5%8D%95%E8%B0%83%E9%98%9F%E5%88%97/index.html">
+<meta property="og:title" content="分布式 容错VMware FT">
+<meta property="og:url" content="https://olive-2019.github.io/oliviablog.github.io/2023/10/03/DS-Lecture3%20VMware/index.html">
 <meta property="og:site_name" content="Hexo">
-<meta property="og:description" content="一个比较神奇的算法，可以高效的解决区间最值问题">
+<meta property="og:description" content="VMware 的容错系统，走指令复制的路子">
 <meta property="og:locale" content="en_US">
-<meta property="article:published_time" content="2023-09-17T14:38:02.000Z">
-<meta property="article:modified_time" content="2023-09-17T15:05:12.095Z">
+<meta property="article:published_time" content="2023-10-02T16:26:51.000Z">
+<meta property="article:modified_time" content="2023-10-03T14:45:56.617Z">
 <meta property="article:author" content="John Doe">
+<meta property="article:tag" content="mit 6.824">
+<meta property="article:tag" content="容错">
 <meta name="twitter:card" content="summary">
 
-<link rel="canonical" href="https://olive-2019.github.io/oliviablog.github.io/2023/09/17/%E7%AE%97%E6%B3%95%EF%BC%9A%E5%8D%95%E8%B0%83%E9%98%9F%E5%88%97/">
+<link rel="canonical" href="https://olive-2019.github.io/oliviablog.github.io/2023/10/03/DS-Lecture3%20VMware/">
 
 
 <script id="page-configurations">
@@ -45,7 +47,7 @@
   };
 </script>
 
-  <title>算法：单调队列 | Hexo</title>
+  <title>分布式 容错VMware FT | Hexo</title>
   
 
 
@@ -160,7 +162,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
-    <link itemprop="mainEntityOfPage" href="https://olive-2019.github.io/oliviablog.github.io/2023/09/17/%E7%AE%97%E6%B3%95%EF%BC%9A%E5%8D%95%E8%B0%83%E9%98%9F%E5%88%97/">
+    <link itemprop="mainEntityOfPage" href="https://olive-2019.github.io/oliviablog.github.io/2023/10/03/DS-Lecture3%20VMware/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/oliviablog.github.io/images/avatar.gif">
@@ -173,7 +175,7 @@
     </span>
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
-          算法：单调队列
+          分布式 容错VMware FT
         </h1>
 
         <div class="post-meta">
@@ -184,7 +186,7 @@
               <span class="post-meta-item-text">Posted on</span>
               
 
-              <time title="Created: 2023-09-17 22:38:02 / Modified: 23:05:12" itemprop="dateCreated datePublished" datetime="2023-09-17T22:38:02+08:00">2023-09-17</time>
+              <time title="Created: 2023-10-03 00:26:51 / Modified: 22:45:56" itemprop="dateCreated datePublished" datetime="2023-10-03T00:26:51+08:00">2023-10-03</time>
             </span>
 
           
@@ -198,62 +200,37 @@
     <div class="post-body" itemprop="articleBody">
 
       
-        <p>一个比较神奇的算法，可以高效的解决区间最值问题</p>
+        <p>VMware 的容错系统，走指令复制的路子</p>
 <span id="more"></span>
-<h1 id="算法核心"><a href="#算法核心" class="headerlink" title="算法核心"></a>算法核心</h1><p>只要有人比你年轻还比你强，那你就该离队了</p>
-<h1 id="例题：滑动窗口最大值"><a href="#例题：滑动窗口最大值" class="headerlink" title="例题：滑动窗口最大值"></a>例题：滑动窗口最大值</h1><p><a target="_blank" rel="noopener" href="https://leetcode.cn/problems/sliding-window-maximum/description/">leetcode链接</a></p>
-<h2 id="解析："><a href="#解析：" class="headerlink" title="解析："></a>解析：</h2><p>从左向右遍历，建立一个递减的单调队列，定义为queue&#x3D;[i1, i2, …, in], i1 &gt; i2 &gt; … &gt; in。<br>区间内的最大值一定是该队列的队头，否则，大于队头的值会将队头赶出该队列。</p>
-<h2 id="样例解析"><a href="#样例解析" class="headerlink" title="样例解析"></a>样例解析</h2><p>nums &#x3D; [1,3,-1,-3,5,3,6,7] k &#x3D; 3</p>
-<table>
-<thead>
-<tr>
-<th>nums</th>
-<th>单调队列</th>
-<th>说明</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>{[(1)],3,-1,-3,5,3,6,7}</td>
-<td>{1}</td>
-<td></td>
-</tr>
-<tr>
-<td>{[(1,3)],-1,-3,5,3,6,7}</td>
-<td>{3}</td>
-<td>(此时3入队，将1赶走)</td>
-</tr>
-<tr>
-<td>{[(1,3,-1)],-3,5,3,6,7}</td>
-<td>{3, -1}</td>
-<td></td>
-</tr>
-<tr>
-<td>{1,[(3,-1,-3)],5,3,6,7}</td>
-<td>{3, -1， -3}</td>
-<td></td>
-</tr>
-<tr>
-<td>{1,3,[(-1,-3,5)],3,6,7}</td>
-<td>{5}</td>
-<td>（3出队，同时5入队，将-3 -1依次赶走）</td>
-</tr>
-<tr>
-<td>{1,3,-1,[(-3,5,3)],6,7}</td>
-<td>{5, 3}</td>
-<td></td>
-</tr>
-<tr>
-<td>{1,3,-1,-3,[(5,3,6)],7}</td>
-<td>{6}</td>
-<td></td>
-</tr>
-<tr>
-<td>{1,3,-1,-3,5,[(3,6,7)]}</td>
-<td>{7}</td>
-<td></td>
-</tr>
-</tbody></table>
-<h2 id="代码"><a href="#代码" class="headerlink" title="代码"></a>代码</h2><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Solution</span> &#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function">vector&lt;<span class="type">int</span>&gt; <span class="title">maxSlidingWindow</span><span class="params">(vector&lt;<span class="type">int</span>&gt;&amp; nums, <span class="type">int</span> k)</span> </span>&#123;</span><br><span class="line">        vector&lt;<span class="type">int</span>&gt; queue, ans;</span><br><span class="line">        queue.<span class="built_in">push_back</span>(nums[<span class="number">0</span>]);</span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">1</span>; i &lt; nums.<span class="built_in">size</span>(); ++i) &#123;</span><br><span class="line">            <span class="keyword">if</span> (i &gt;= k) &#123;</span><br><span class="line">                ans.<span class="built_in">push_back</span>(queue.<span class="built_in">front</span>());</span><br><span class="line">                <span class="keyword">if</span> (queue[<span class="number">0</span>] == nums[i - k]) queue.<span class="built_in">erase</span>(queue.<span class="built_in">begin</span>());</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">while</span> (queue.<span class="built_in">size</span>() &amp;&amp; queue.<span class="built_in">back</span>() &lt; nums[i]) queue.<span class="built_in">pop_back</span>();</span><br><span class="line">            <span class="keyword">if</span> (!queue.<span class="built_in">size</span>() || queue.<span class="built_in">back</span>() &gt;= nums[i]) queue.<span class="built_in">push_back</span>(nums[i]);</span><br><span class="line">        &#125;</span><br><span class="line">        ans.<span class="built_in">push_back</span>(queue.<span class="built_in">front</span>());</span><br><span class="line">        <span class="keyword">return</span> ans;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<h1 id="论文阅读"><a href="#论文阅读" class="headerlink" title="论文阅读"></a>论文阅读</h1><p>本质上就是VMware的老本行，用VMM消除指令执行的不确定性，并通过传输指令的方式对系统进行复制</p>
+<h2 id="主备份容错"><a href="#主备份容错" class="headerlink" title="主备份容错"></a>主备份容错</h2><p>主备份服务器保持一致有两种方式：</p>
+<ol>
+<li><strong>状态转移</strong>：将primary的所有状态发送给backup，缺点是传输数据量大。</li>
+<li><strong>备份状态机</strong>：将primary的所有操作给backup一份，让backup称为primary的状态，传输数据量小。</li>
+</ol>
+<h2 id="VMware"><a href="#VMware" class="headerlink" title="VMware"></a>VMware</h2><p>两个虚拟机分别是primary和backup，部署在不同机器上，共享磁盘。<br>虚拟机和物理机之间有一层虚拟机管理程序（VMM）hypervisor，VMM对硬件的模拟和控制可以将不确定的操作确定化，保证后续的replay。<br>primary和backup之间通过<strong>日志</strong>来实现备份状态机同步。VMM将primary的所有操作确定化为一条x86 CPU指令，并写出日志，通过logging channel传输到backup的log cache上。</p>
+<h2 id="logging-buffer和channel"><a href="#logging-buffer和channel" class="headerlink" title="logging buffer和channel"></a>logging buffer和channel</h2><p>primary和backup的状态备份通过<strong>primary写出日志，backup读取日志</strong>的方式进行。这个地方的写出、读取并不涉及磁盘，而是在内存中进行的，即logging buffer。<br>两个logging buffer之间的通信通过logging channel进行。<br>需要保证两者的logging buffer处于平衡状态，如果backup 的replay太慢，1.primary的logging buffer会爆，2.积存太多日志，primary失效后，需要等待backup较长时间执行replay操作。从外部看，系统响应时间较长。</p>
+<h2 id="FT-Protocol"><a href="#FT-Protocol" class="headerlink" title="FT Protocol"></a>FT Protocol</h2><p>logging channel的协议</p>
+<h3 id="基本要求"><a href="#基本要求" class="headerlink" title="基本要求"></a>基本要求</h3><p>当primary失效时，backup之后向client发送的所有output要与primary一致</p>
+<h3 id="Output-Rule"><a href="#Output-Rule" class="headerlink" title="Output Rule"></a>Output Rule</h3><p>为了避免primary在output中断的时候故障，backup没有接收到primary的状态</p>
+<ol>
+<li>primary 在进行output之前，都把output相关信息发一份给backup，收到backup的ack以后才真正执行output操作</li>
+<li>primary等待backup的ack期间也执行后续操作，只是推迟output而已</li>
+</ol>
+<p>注：该协议无法保证重复输出，依赖于其他设施保证（如TCP检测重复数据包）</p>
+<h2 id="故障监测和响应"><a href="#故障监测和响应" class="headerlink" title="故障监测和响应"></a>故障监测和响应</h2><h3 id="故障检测"><a href="#故障检测" class="headerlink" title="故障检测"></a>故障检测</h3><p>primary和backup之间有三种信息可以用于进行故障检测，如果心跳和日志都超时了，就说明发生故障了</p>
+<ol>
+<li>primary和backup之间的心跳信息（UDP）</li>
+<li>logging channel的流量监测</li>
+<li>backup给primary的ack</li>
+</ol>
+<h3 id="故障响应"><a href="#故障响应" class="headerlink" title="故障响应"></a>故障响应</h3><p>backup检测到故障（长时间没有收到响应）后，并不能直接顶上primary的位置。因为直接顶上有脑裂的风险，同时存在两个primary对磁盘数据进行读写会造成数据损坏。<br>所以两个虚拟机需要通过共享磁盘获取对方是否故障的信息。具体做法是通过test-and-set原子操作竞争磁盘，拿不到磁盘锁的就不是primary。<br>若primary失效，那么backup顶上，并通过VMotion创建一个新backup，若backup失效，则创建一个新backup</p>
+<h2 id="VM-FT和GFS的区别"><a href="#VM-FT和GFS的区别" class="headerlink" title="VM-FT和GFS的区别"></a>VM-FT和GFS的区别</h2><p>本质上就是备份级别的问题，VM-FT是机器级的复制（low level 机器指令），GFS是应用级的复制（high level 数据库命令等）</p>
+<ol>
+<li>VM-FT备份<strong>指令</strong>，可以为<strong>所有服务</strong>提供容错服务，且<strong>一致性严谨</strong></li>
+<li>GFS备份<strong>数据</strong>，<strong>只针对数据存储</strong>服务，备份策略更<strong>高效</strong></li>
+</ol>
+
     </div>
 
     
@@ -261,17 +238,21 @@
     
 
       <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/oliviablog.github.io/tags/mit-6-824/" rel="tag"># mit 6.824</a>
+              <a href="/oliviablog.github.io/tags/%E5%AE%B9%E9%94%99/" rel="tag"># 容错</a>
+          </div>
 
         
 
 
         
     <div class="post-nav">
-      <div class="post-nav-item"></div>
       <div class="post-nav-item">
-    <a href="/oliviablog.github.io/2023/09/17/DS_Lecture1%20mapreduce/" rel="next" title="分布式系统 MapReduce">
-      分布式系统 MapReduce <i class="fa fa-chevron-right"></i>
+    <a href="/oliviablog.github.io/2023/09/30/DS_Lecture2%20GFS/" rel="prev" title="分布式系统 GFS">
+      <i class="fa fa-chevron-left"></i> 分布式系统 GFS
     </a></div>
+      <div class="post-nav-item"></div>
     </div>
       </footer>
     
@@ -330,7 +311,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E7%AE%97%E6%B3%95%E6%A0%B8%E5%BF%83"><span class="nav-number">1.</span> <span class="nav-text">算法核心</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%BE%8B%E9%A2%98%EF%BC%9A%E6%BB%91%E5%8A%A8%E7%AA%97%E5%8F%A3%E6%9C%80%E5%A4%A7%E5%80%BC"><span class="nav-number">2.</span> <span class="nav-text">例题：滑动窗口最大值</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%A7%A3%E6%9E%90%EF%BC%9A"><span class="nav-number">2.1.</span> <span class="nav-text">解析：</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%A0%B7%E4%BE%8B%E8%A7%A3%E6%9E%90"><span class="nav-number">2.2.</span> <span class="nav-text">样例解析</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BB%A3%E7%A0%81"><span class="nav-number">2.3.</span> <span class="nav-text">代码</span></a></li></ol></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB"><span class="nav-number">1.</span> <span class="nav-text">论文阅读</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%BB%E5%A4%87%E4%BB%BD%E5%AE%B9%E9%94%99"><span class="nav-number">1.1.</span> <span class="nav-text">主备份容错</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#VMware"><span class="nav-number">1.2.</span> <span class="nav-text">VMware</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#logging-buffer%E5%92%8Cchannel"><span class="nav-number">1.3.</span> <span class="nav-text">logging buffer和channel</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#FT-Protocol"><span class="nav-number">1.4.</span> <span class="nav-text">FT Protocol</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%9F%BA%E6%9C%AC%E8%A6%81%E6%B1%82"><span class="nav-number">1.4.1.</span> <span class="nav-text">基本要求</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Output-Rule"><span class="nav-number">1.4.2.</span> <span class="nav-text">Output Rule</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%95%85%E9%9A%9C%E7%9B%91%E6%B5%8B%E5%92%8C%E5%93%8D%E5%BA%94"><span class="nav-number">1.5.</span> <span class="nav-text">故障监测和响应</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%95%85%E9%9A%9C%E6%A3%80%E6%B5%8B"><span class="nav-number">1.5.1.</span> <span class="nav-text">故障检测</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%95%85%E9%9A%9C%E5%93%8D%E5%BA%94"><span class="nav-number">1.5.2.</span> <span class="nav-text">故障响应</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#VM-FT%E5%92%8CGFS%E7%9A%84%E5%8C%BA%E5%88%AB"><span class="nav-number">1.6.</span> <span class="nav-text">VM-FT和GFS的区别</span></a></li></ol></li></ol></div>
       </div>
       <!--/noindex-->
 
