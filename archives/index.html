@@ -158,13 +158,33 @@
   <div class="post-block">
     <div class="posts-collapse">
       <div class="collection-title">
-        <span class="collection-header">Um..! 6 posts in total. Keep on posting.</span>
+        <span class="collection-header">Um..! 7 posts in total. Keep on posting.</span>
       </div>
 
       
     <div class="collection-year">
       <span class="collection-header">2023</span>
     </div>
+
+  <article itemscope itemtype="http://schema.org/Article">
+    <header class="post-header">
+
+      <div class="post-meta">
+        <time itemprop="dateCreated"
+              datetime="2023-10-05T15:03:37+08:00"
+              content="2023-10-05">
+          10-05
+        </time>
+      </div>
+
+      <div class="post-title">
+          <a class="post-title-link" href="/oliviablog.github.io/2023/10/05/DS-Lecture4%20Raft/" itemprop="url">
+            <span itemprop="name">分布式系统 Raft</span>
+          </a>
+      </div>
+
+    </header>
+  </article>
 
   <article itemscope itemtype="http://schema.org/Article">
     <header class="post-header">
@@ -199,7 +219,7 @@
 
       <div class="post-title">
           <a class="post-title-link" href="/oliviablog.github.io/2023/10/03/DS-Lecture3%20VMware/" itemprop="url">
-            <span itemprop="name">分布式 容错VMware FT</span>
+            <span itemprop="name">分布式系统 容错VMware FT</span>
           </a>
       </div>
 
@@ -358,14 +378,14 @@
       <div class="site-state-item site-state-posts">
           <a href="/oliviablog.github.io/archives/">
         
-          <span class="site-state-item-count">6</span>
+          <span class="site-state-item-count">7</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
       <div class="site-state-item site-state-tags">
             <a href="/oliviablog.github.io/tags/">
           
-        <span class="site-state-item-count">5</span>
+        <span class="site-state-item-count">8</span>
         <span class="site-state-item-name">tags</span></a>
       </div>
   </nav>
@@ -446,6 +466,19 @@
 
 
 
+<script>
+if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8/dist/mermaid.min.js', () => {
+    mermaid.initialize({
+      theme    : 'forest',
+      logLevel : 3,
+      flowchart: { curve     : 'linear' },
+      gantt    : { axisFormat: '%m/%d/%Y' },
+      sequence : { actorMargin: 50 }
+    });
+  }, window.mermaid);
+}
+</script>
 
 
   

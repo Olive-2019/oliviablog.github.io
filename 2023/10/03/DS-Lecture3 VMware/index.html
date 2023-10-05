@@ -22,13 +22,13 @@
 
   <meta name="description" content="VMware 的容错系统，走指令复制的路子">
 <meta property="og:type" content="article">
-<meta property="og:title" content="分布式 容错VMware FT">
+<meta property="og:title" content="分布式系统 容错VMware FT">
 <meta property="og:url" content="https://olive-2019.github.io/oliviablog.github.io/2023/10/03/DS-Lecture3%20VMware/index.html">
 <meta property="og:site_name" content="Hexo">
 <meta property="og:description" content="VMware 的容错系统，走指令复制的路子">
 <meta property="og:locale" content="en_US">
 <meta property="article:published_time" content="2023-10-02T16:26:51.000Z">
-<meta property="article:modified_time" content="2023-10-03T14:45:56.617Z">
+<meta property="article:modified_time" content="2023-10-05T07:05:00.952Z">
 <meta property="article:author" content="John Doe">
 <meta property="article:tag" content="mit 6.824">
 <meta property="article:tag" content="容错">
@@ -47,7 +47,7 @@
   };
 </script>
 
-  <title>分布式 容错VMware FT | Hexo</title>
+  <title>分布式系统 容错VMware FT | Hexo</title>
   
 
 
@@ -175,7 +175,7 @@
     </span>
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
-          分布式 容错VMware FT
+          分布式系统 容错VMware FT
         </h1>
 
         <div class="post-meta">
@@ -184,10 +184,16 @@
                 <i class="far fa-calendar"></i>
               </span>
               <span class="post-meta-item-text">Posted on</span>
-              
 
-              <time title="Created: 2023-10-03 00:26:51 / Modified: 22:45:56" itemprop="dateCreated datePublished" datetime="2023-10-03T00:26:51+08:00">2023-10-03</time>
+              <time title="Created: 2023-10-03 00:26:51" itemprop="dateCreated datePublished" datetime="2023-10-03T00:26:51+08:00">2023-10-03</time>
             </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2023-10-05 15:05:00" itemprop="dateModified" datetime="2023-10-05T15:05:00+08:00">2023-10-05</time>
+              </span>
 
           
 
@@ -229,6 +235,30 @@
 <ol>
 <li>VM-FT备份<strong>指令</strong>，可以为<strong>所有服务</strong>提供容错服务，且<strong>一致性严谨</strong></li>
 <li>GFS备份<strong>数据</strong>，<strong>只针对数据存储</strong>服务，备份策略更<strong>高效</strong></li>
+</ol>
+<h1 id="课程记录"><a href="#课程记录" class="headerlink" title="课程记录"></a>课程记录</h1><p>复制是容错的基本操作。但是复制并不能解决所有问题，主要解决的是fail-stop的错误，对软硬件的bug无能为力。</p>
+<h2 id="复制的两种策略"><a href="#复制的两种策略" class="headerlink" title="复制的两种策略"></a>复制的两种策略</h2><p>根据备份的内容和级别不同，可以分为以下两种备份策略</p>
+<ol>
+<li>state transfer状态转移：将内存、磁盘等内容拷贝给backup，简单粗暴</li>
+<li>replicated state machine复制状态机：将事件（指令）传递给backup，复杂</li>
+</ol>
+<p>replicated state machine只是同步时成本低，但是当backup&#x2F;primary失效时，仍是需要通过state transfer来创建新副本</p>
+<h2 id="VMware-FT工作原理"><a href="#VMware-FT工作原理" class="headerlink" title="VMware FT工作原理"></a>VMware FT工作原理</h2><p>在两台物理机上部署VMM，VMM向两个异地虚拟机分配相同的配置（内存等），同一个LAN里还有一些客户端和共享磁盘（共享磁盘和客户端可以大致认定相同）<br>由primary的VMM将外部输入转发给backup，backup的VMM知道自己是backup，所以会对backup虚拟机的输出进行丢包</p>
+<ul>
+<li>当primary发生故障时，backup的VMM会在一些防止split-brain的操作后充当primary，不再丢包，执行primary的转发功能，并控制生成backup</li>
+<li>当backup发生故障时，primary的VMM会控制生成新的backup，并转发数据包到新的backup上</li>
+</ul>
+<h2 id="不确定事件"><a href="#不确定事件" class="headerlink" title="不确定事件"></a>不确定事件</h2><p>不确定事件可以有以下几类</p>
+<ol>
+<li>客户端输入：不可控</li>
+<li>怪异指令：随机数、获取当前时间、获取计算机id</li>
+<li>多CPU并发的指令执行顺序</li>
+</ol>
+<p>这些事件都要通过log channel发送到backup，老师猜测的日志内容应该包括</p>
+<ol>
+<li>事件的指令序号</li>
+<li>日志类型：数据包or怪异指令？</li>
+<li>数据：数据包就是普通数据，怪异指令就是提供primary执行该指令后的系统状态，方便backup伪造该指令</li>
 </ol>
 
     </div>
@@ -314,7 +344,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB"><span class="nav-number">1.</span> <span class="nav-text">论文阅读</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%BB%E5%A4%87%E4%BB%BD%E5%AE%B9%E9%94%99"><span class="nav-number">1.1.</span> <span class="nav-text">主备份容错</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#VMware"><span class="nav-number">1.2.</span> <span class="nav-text">VMware</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#logging-buffer%E5%92%8Cchannel"><span class="nav-number">1.3.</span> <span class="nav-text">logging buffer和channel</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#FT-Protocol"><span class="nav-number">1.4.</span> <span class="nav-text">FT Protocol</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%9F%BA%E6%9C%AC%E8%A6%81%E6%B1%82"><span class="nav-number">1.4.1.</span> <span class="nav-text">基本要求</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Output-Rule"><span class="nav-number">1.4.2.</span> <span class="nav-text">Output Rule</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%95%85%E9%9A%9C%E7%9B%91%E6%B5%8B%E5%92%8C%E5%93%8D%E5%BA%94"><span class="nav-number">1.5.</span> <span class="nav-text">故障监测和响应</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%95%85%E9%9A%9C%E6%A3%80%E6%B5%8B"><span class="nav-number">1.5.1.</span> <span class="nav-text">故障检测</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%95%85%E9%9A%9C%E5%93%8D%E5%BA%94"><span class="nav-number">1.5.2.</span> <span class="nav-text">故障响应</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#VM-FT%E5%92%8CGFS%E7%9A%84%E5%8C%BA%E5%88%AB"><span class="nav-number">1.6.</span> <span class="nav-text">VM-FT和GFS的区别</span></a></li></ol></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB"><span class="nav-number">1.</span> <span class="nav-text">论文阅读</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%BB%E5%A4%87%E4%BB%BD%E5%AE%B9%E9%94%99"><span class="nav-number">1.1.</span> <span class="nav-text">主备份容错</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#VMware"><span class="nav-number">1.2.</span> <span class="nav-text">VMware</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#logging-buffer%E5%92%8Cchannel"><span class="nav-number">1.3.</span> <span class="nav-text">logging buffer和channel</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#FT-Protocol"><span class="nav-number">1.4.</span> <span class="nav-text">FT Protocol</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%9F%BA%E6%9C%AC%E8%A6%81%E6%B1%82"><span class="nav-number">1.4.1.</span> <span class="nav-text">基本要求</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Output-Rule"><span class="nav-number">1.4.2.</span> <span class="nav-text">Output Rule</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%95%85%E9%9A%9C%E7%9B%91%E6%B5%8B%E5%92%8C%E5%93%8D%E5%BA%94"><span class="nav-number">1.5.</span> <span class="nav-text">故障监测和响应</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%95%85%E9%9A%9C%E6%A3%80%E6%B5%8B"><span class="nav-number">1.5.1.</span> <span class="nav-text">故障检测</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%95%85%E9%9A%9C%E5%93%8D%E5%BA%94"><span class="nav-number">1.5.2.</span> <span class="nav-text">故障响应</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#VM-FT%E5%92%8CGFS%E7%9A%84%E5%8C%BA%E5%88%AB"><span class="nav-number">1.6.</span> <span class="nav-text">VM-FT和GFS的区别</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E8%AF%BE%E7%A8%8B%E8%AE%B0%E5%BD%95"><span class="nav-number">2.</span> <span class="nav-text">课程记录</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%A4%8D%E5%88%B6%E7%9A%84%E4%B8%A4%E7%A7%8D%E7%AD%96%E7%95%A5"><span class="nav-number">2.1.</span> <span class="nav-text">复制的两种策略</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#VMware-FT%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86"><span class="nav-number">2.2.</span> <span class="nav-text">VMware FT工作原理</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%8D%E7%A1%AE%E5%AE%9A%E4%BA%8B%E4%BB%B6"><span class="nav-number">2.3.</span> <span class="nav-text">不确定事件</span></a></li></ol></li></ol></div>
       </div>
       <!--/noindex-->
 
@@ -328,14 +358,14 @@
       <div class="site-state-item site-state-posts">
           <a href="/oliviablog.github.io/archives/">
         
-          <span class="site-state-item-count">6</span>
+          <span class="site-state-item-count">7</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
       <div class="site-state-item site-state-tags">
             <a href="/oliviablog.github.io/tags/">
           
-        <span class="site-state-item-count">5</span>
+        <span class="site-state-item-count">8</span>
         <span class="site-state-item-name">tags</span></a>
       </div>
   </nav>
@@ -416,6 +446,19 @@
 
 
 
+<script>
+if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8/dist/mermaid.min.js', () => {
+    mermaid.initialize({
+      theme    : 'forest',
+      logLevel : 3,
+      flowchart: { curve     : 'linear' },
+      gantt    : { axisFormat: '%m/%d/%Y' },
+      sequence : { actorMargin: 50 }
+    });
+  }, window.mermaid);
+}
+</script>
 
 
   

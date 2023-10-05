@@ -28,8 +28,10 @@
 <meta property="og:description" content="一道通过dp遍历顺序保证不重复的题目，咋一看很简单，细看有点难">
 <meta property="og:locale" content="en_US">
 <meta property="article:published_time" content="2023-10-04T01:43:30.000Z">
-<meta property="article:modified_time" content="2023-10-04T02:35:00.542Z">
+<meta property="article:modified_time" content="2023-10-04T02:36:27.710Z">
 <meta property="article:author" content="John Doe">
+<meta property="article:tag" content="算法">
+<meta property="article:tag" content="DP">
 <meta name="twitter:card" content="summary">
 
 <link rel="canonical" href="https://olive-2019.github.io/oliviablog.github.io/2023/10/04/%E4%BF%9D%E8%AF%81%E4%B8%8D%E9%87%8D%E5%A4%8D%E7%9A%84dp/">
@@ -184,7 +186,7 @@
               <span class="post-meta-item-text">Posted on</span>
               
 
-              <time title="Created: 2023-10-04 09:43:30 / Modified: 10:35:00" itemprop="dateCreated datePublished" datetime="2023-10-04T09:43:30+08:00">2023-10-04</time>
+              <time title="Created: 2023-10-04 09:43:30 / Modified: 10:36:27" itemprop="dateCreated datePublished" datetime="2023-10-04T09:43:30+08:00">2023-10-04</time>
             </span>
 
           
@@ -210,6 +212,10 @@
     
 
       <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/oliviablog.github.io/tags/%E7%AE%97%E6%B3%95/" rel="tag"># 算法</a>
+              <a href="/oliviablog.github.io/tags/DP/" rel="tag"># DP</a>
+          </div>
 
         
 
@@ -217,10 +223,13 @@
         
     <div class="post-nav">
       <div class="post-nav-item">
-    <a href="/oliviablog.github.io/2023/10/03/DS-Lecture3%20VMware/" rel="prev" title="分布式 容错VMware FT">
-      <i class="fa fa-chevron-left"></i> 分布式 容错VMware FT
+    <a href="/oliviablog.github.io/2023/10/03/DS-Lecture3%20VMware/" rel="prev" title="分布式系统 容错VMware FT">
+      <i class="fa fa-chevron-left"></i> 分布式系统 容错VMware FT
     </a></div>
-      <div class="post-nav-item"></div>
+      <div class="post-nav-item">
+    <a href="/oliviablog.github.io/2023/10/05/DS-Lecture4%20Raft/" rel="next" title="分布式系统 Raft">
+      分布式系统 Raft <i class="fa fa-chevron-right"></i>
+    </a></div>
     </div>
       </footer>
     
@@ -293,14 +302,14 @@
       <div class="site-state-item site-state-posts">
           <a href="/oliviablog.github.io/archives/">
         
-          <span class="site-state-item-count">6</span>
+          <span class="site-state-item-count">7</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
       <div class="site-state-item site-state-tags">
             <a href="/oliviablog.github.io/tags/">
           
-        <span class="site-state-item-count">5</span>
+        <span class="site-state-item-count">8</span>
         <span class="site-state-item-name">tags</span></a>
       </div>
   </nav>
@@ -381,6 +390,19 @@
 
 
 
+<script>
+if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8/dist/mermaid.min.js', () => {
+    mermaid.initialize({
+      theme    : 'forest',
+      logLevel : 3,
+      flowchart: { curve     : 'linear' },
+      gantt    : { axisFormat: '%m/%d/%Y' },
+      sequence : { actorMargin: 50 }
+    });
+  }, window.mermaid);
+}
+</script>
 
 
   
