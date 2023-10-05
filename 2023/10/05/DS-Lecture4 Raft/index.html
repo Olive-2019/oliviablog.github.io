@@ -28,7 +28,7 @@
 <meta property="og:description" content="分布式协同算法 Raft">
 <meta property="og:locale" content="en_US">
 <meta property="article:published_time" content="2023-10-05T07:03:37.000Z">
-<meta property="article:modified_time" content="2023-10-05T09:44:24.961Z">
+<meta property="article:modified_time" content="2023-10-05T17:20:08.274Z">
 <meta property="article:author" content="John Doe">
 <meta property="article:tag" content="mit 6.824">
 <meta property="article:tag" content="容错">
@@ -185,10 +185,16 @@
                 <i class="far fa-calendar"></i>
               </span>
               <span class="post-meta-item-text">Posted on</span>
-              
 
-              <time title="Created: 2023-10-05 15:03:37 / Modified: 17:44:24" itemprop="dateCreated datePublished" datetime="2023-10-05T15:03:37+08:00">2023-10-05</time>
+              <time title="Created: 2023-10-05 15:03:37" itemprop="dateCreated datePublished" datetime="2023-10-05T15:03:37+08:00">2023-10-05</time>
             </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2023-10-06 01:20:08" itemprop="dateModified" datetime="2023-10-06T01:20:08+08:00">2023-10-06</time>
+              </span>
 
           
 
@@ -221,14 +227,54 @@
     B --> |获得大多数选票| C(Leader)
     C --> |其他server有更大的term编号| A
     B --> |当前系统有leader了or其他server有更大的term编号| A</pre>
-<h3 id="时间片term"><a href="#时间片term" class="headerlink" title="时间片term"></a>时间片term</h3><p>系统的term（时间片）是任意(随机)长度的，每一个term都由选举开始，如果选举失败，该term立即终止，马上进入下一个term。Raft始终保证系统中有且仅有一个leader。<br>系统中的server保存了当前的term编号，如果server发现自己的term编号比其他server小，则自增到新的term编号，如果leader或candidate发现自己的编号过时了，则马上恢复到follower状态（指降级？）<br>如果server收到了term编号不对的请求，将该请求丢弃。</p>
+<h3 id="时间片term"><a href="#时间片term" class="headerlink" title="时间片term"></a>时间片term</h3><p>系统的term（时间片）是任意(随机)长度的，每一个term都由选举开始，如果选举失败，该term立即终止，马上进入下一个term。Raft始终保证系统中有且仅有一个leader。<br>系统中的server保存了当前的term编号，如果server发现自己的term编号比其他server小，则自增到新的term编号，如果leader或candidate发现自己的编号过时了，则马上降级到follower<br>如果server收到了term编号不对的请求，将该请求丢弃。</p>
 <h3 id="通信-RPC"><a href="#通信-RPC" class="headerlink" title="通信 RPC"></a>通信 RPC</h3><p>系统中需要三条RPC通信路径</p>
 <ol>
 <li><strong>RequestVote RPCs</strong>：在选举过程中，由候选者初始化</li>
 <li><strong>AppendEntries RPCs</strong>：由leader初始化，在系统运行时提供日志条目复制和心跳功能</li>
 <li><strong>TransferSnapshot RPCs</strong>：传递server快照的RPCs</li>
 </ol>
-<h2 id="选举"><a href="#选举" class="headerlink" title="选举"></a>选举</h2>
+<h2 id="选举"><a href="#选举" class="headerlink" title="选举"></a>选举</h2><p>server以follower身份启动，leader会定时发心跳信息（无日志信息的appendEntries）给follower维护自己的leader地位。当follower超时未收到心跳信息时则开启选举。<br>选举过程是follower将term编号自增并进入candidate状态，然后给自己投票，并向其他server并行发出RequestVote RPCs请求票。<br>每个server在一个term里至多给一个server投票，投票遵循先到先得原则。</p>
+<h3 id="选举结果"><a href="#选举结果" class="headerlink" title="选举结果"></a>选举结果</h3><p>candidates状态的结果有三种：</p>
+<ol>
+<li>获取大部分选票，赢得选举-&gt;leader 开始发心跳信息维护自己的leader地位</li>
+<li>收到了其他server的RequestVote RPCs，若其term编号大于等于自己，则认定其为合法leader-&gt;follower （否则自己仍为candidate）</li>
+<li>当多个server同时进入candidate状态并发送RequestVote RPCs，没人赢得选举-&gt;candidate 重启选举流程</li>
+</ol>
+<h3 id="随机超时机制"><a href="#随机超时机制" class="headerlink" title="随机超时机制"></a>随机超时机制</h3><p>为了保证系统尽量少进入第三个状态，即无人赢得选举，不停地选举，Raft采用随机的超时时限（150-300ms之间）。这样可以保证在在某一个时刻，只有一个server发现超时，并赢得选举。<br>每一个candidate在term开始时重新获取一个随机超时时限，</p>
+<h2 id="日志复制"><a href="#日志复制" class="headerlink" title="日志复制"></a>日志复制</h2><p>当client发送命令时，系统中会按顺序发生如下事件：</p>
+<ol>
+<li>leader追加一个新的log entry，也就是这条命令</li>
+<li>发布AppendEntries RPCs给其他server</li>
+<li>当这个entry完成安全的复制后，leader会执行该命令</li>
+<li>返回执行结果给client</li>
+</ol>
+<h3 id="日志内容"><a href="#日志内容" class="headerlink" title="日志内容"></a>日志内容</h3><p>日志将包含两个部分：</p>
+<ol>
+<li>状态机命令</li>
+<li>term编号：标记这条命令产生的时期</li>
+</ol>
+<h3 id="commited-entry"><a href="#commited-entry" class="headerlink" title="commited entry"></a>commited entry</h3><ul>
+<li>当entry被大多数（为什么是大多数？）server复制时，该log entry会变成commited状态。Raft将会保证系统中commited的entry被持久化以及被所有server执行。</li>
+<li>当一条log entry是commited时，这条日志之前的所有entries都会被commit，不论任何leader产生的。</li>
+<li>leader会追踪将要commit的最早entry，并用其发送appendEntries RPCs</li>
+<li>当follower得知entry被commit以后，就会执行该entry包含的命令</li>
+</ul>
+<h3 id="运行时日志一致性保证"><a href="#运行时日志一致性保证" class="headerlink" title="运行时日志一致性保证"></a>运行时日志一致性保证</h3><p>日志有两个属性</p>
+<ul>
+<li>index和term相同的log，命令必然相同</li>
+<li>index和term相同的log，前置log必然相同</li>
+</ul>
+<p>发送AppendEntries RPC时，leader会将前一个log的index和term也附上，如果follower没找到前一个log，那也不读入当前log</p>
+<h3 id="leader对日志一致性保证"><a href="#leader对日志一致性保证" class="headerlink" title="leader对日志一致性保证"></a>leader对日志一致性保证</h3><p>正常运行时，leader和多个follower的日志将会保持一致，当leader挂掉重新选举时，可能会导致日志出现不一致的现象，此时leader将自己的log强制复制给follower。leader会为<strong>每个follower</strong>更新nextIndex，用来指示向特定follower发送的下一条log entry。具体做法是：</p>
+<ol>
+<li><strong>初始化</strong>：将nextIndex初始化为leader的最后一条log entry的下一条</li>
+<li><strong>试错</strong>：给follower发送下一条的AppendEntries，如果失败，nextIndex–（也可以通过返回entries，让leader直接查找nextIndex）</li>
+<li><strong>结果</strong>：当AppendEntries成功时，正确的nextIndex就找到了</li>
+<li><strong>更新</strong>：将leader后续的log entries通过AppendEntries发送给follower，覆盖掉不一致的日志</li>
+</ol>
+<p>通过这些措施，leader在选举成功后，就会让整个系统里的follower逐渐收敛到自己的日志中来。同时，leader是不会删除（覆盖）自己的日志，只会覆盖掉follower的日志</p>
+
     </div>
 
     
@@ -310,7 +356,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB"><span class="nav-number">1.</span> <span class="nav-text">论文阅读</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Raft%E5%9F%BA%E7%A1%80"><span class="nav-number">1.1.</span> <span class="nav-text">Raft基础</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%8A%B6%E6%80%81state"><span class="nav-number">1.1.1.</span> <span class="nav-text">状态state</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%97%B6%E9%97%B4%E7%89%87term"><span class="nav-number">1.1.2.</span> <span class="nav-text">时间片term</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%80%9A%E4%BF%A1-RPC"><span class="nav-number">1.1.3.</span> <span class="nav-text">通信 RPC</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%80%89%E4%B8%BE"><span class="nav-number">1.2.</span> <span class="nav-text">选举</span></a></li></ol></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB"><span class="nav-number">1.</span> <span class="nav-text">论文阅读</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Raft%E5%9F%BA%E7%A1%80"><span class="nav-number">1.1.</span> <span class="nav-text">Raft基础</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%8A%B6%E6%80%81state"><span class="nav-number">1.1.1.</span> <span class="nav-text">状态state</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%97%B6%E9%97%B4%E7%89%87term"><span class="nav-number">1.1.2.</span> <span class="nav-text">时间片term</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%80%9A%E4%BF%A1-RPC"><span class="nav-number">1.1.3.</span> <span class="nav-text">通信 RPC</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%80%89%E4%B8%BE"><span class="nav-number">1.2.</span> <span class="nav-text">选举</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%80%89%E4%B8%BE%E7%BB%93%E6%9E%9C"><span class="nav-number">1.2.1.</span> <span class="nav-text">选举结果</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%9A%8F%E6%9C%BA%E8%B6%85%E6%97%B6%E6%9C%BA%E5%88%B6"><span class="nav-number">1.2.2.</span> <span class="nav-text">随机超时机制</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%97%A5%E5%BF%97%E5%A4%8D%E5%88%B6"><span class="nav-number">1.3.</span> <span class="nav-text">日志复制</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%97%A5%E5%BF%97%E5%86%85%E5%AE%B9"><span class="nav-number">1.3.1.</span> <span class="nav-text">日志内容</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#commited-entry"><span class="nav-number">1.3.2.</span> <span class="nav-text">commited entry</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%BF%90%E8%A1%8C%E6%97%B6%E6%97%A5%E5%BF%97%E4%B8%80%E8%87%B4%E6%80%A7%E4%BF%9D%E8%AF%81"><span class="nav-number">1.3.3.</span> <span class="nav-text">运行时日志一致性保证</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#leader%E5%AF%B9%E6%97%A5%E5%BF%97%E4%B8%80%E8%87%B4%E6%80%A7%E4%BF%9D%E8%AF%81"><span class="nav-number">1.3.4.</span> <span class="nav-text">leader对日志一致性保证</span></a></li></ol></li></ol></li></ol></div>
       </div>
       <!--/noindex-->
 
