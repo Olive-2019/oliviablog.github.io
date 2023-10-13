@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 6.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/oliviablog.github.io/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/oliviablog.github.io/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/oliviablog.github.io/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/oliviablog.github.io/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/oliviablog.github.io/css/main.css">
+
+
+<link rel="stylesheet" href="/oliviablog.github.io/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"olive-2019.github.io","root":"/oliviablog.github.io/","scheme":"Pisces","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="lang chain简介">
+<meta property="og:type" content="article">
+<meta property="og:title" content="langchain">
+<meta property="og:url" content="https://olive-2019.github.io/oliviablog.github.io/2023/10/10/langchain/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="lang chain简介">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2023-10-10T13:03:33.000Z">
+<meta property="article:modified_time" content="2023-10-11T12:38:19.243Z">
+<meta property="article:author" content="John Doe">
+<meta property="article:tag" content="AIGC">
+<meta property="article:tag" content="工具链">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="https://olive-2019.github.io/oliviablog.github.io/2023/10/10/langchain/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>langchain | Hexo</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/oliviablog.github.io/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Hexo</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/oliviablog.github.io/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/oliviablog.github.io/about/" rel="section"><i class="fa fa-user fa-fw"></i>About</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/oliviablog.github.io/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/oliviablog.github.io/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://olive-2019.github.io/oliviablog.github.io/2023/10/10/langchain/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/oliviablog.github.io/images/avatar.gif">
+      <meta itemprop="name" content="John Doe">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Hexo">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          langchain
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2023-10-10 21:03:33" itemprop="dateCreated datePublished" datetime="2023-10-10T21:03:33+08:00">2023-10-10</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2023-10-11 20:38:19" itemprop="dateModified" datetime="2023-10-11T20:38:19+08:00">2023-10-11</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>lang chain简介</p>
+<span id="more"></span>
+<h1 id="LangChain是什么？"><a href="#LangChain是什么？" class="headerlink" title="LangChain是什么？"></a>LangChain是什么？</h1><blockquote>
+<p>LangChain是一个基于语言模型开发应用程序的框架。它可以实现以下应用程序：<br>数据感知：将语言模型连接到其他数据源<br>自主性：允许语言模型与其环境进行交互<br>LangChain的主要价值在于：</p>
+</blockquote>
+<blockquote>
+<p>组件化：为使用语言模型提供抽象层，以及每个抽象层的一组实现。组件是模块化且易于使用的，无论您是否使用LangChain框架的其余部分。<br>现成的链：结构化的组件集合，用于完成特定的高级任务</p>
+</blockquote>
+<p>简而言之，就是提供基于各种大模型开发应用的工具链。</p>
+<h1 id="LangChain-关键组件"><a href="#LangChain-关键组件" class="headerlink" title="LangChain 关键组件"></a>LangChain 关键组件</h1><h2 id="Models"><a href="#Models" class="headerlink" title="Models"></a>Models</h2><h3 id="Chat-Modals"><a href="#Chat-Modals" class="headerlink" title="Chat Modals"></a>Chat Modals</h3><p>目前支持 AIMessage、HumanMessage、SystemMessage 和 ChatMessage。<br>Chat可以是任意角色的， System是提供背景，设定AI角色的，Human是人类给的提问，AI是LLM给的回答</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 导入OpenAI的聊天模型，及消息类型</span></span><br><span class="line"><span class="keyword">from</span> langchain.chat_models <span class="keyword">import</span> ChatOpenAI</span><br><span class="line"><span class="keyword">from</span> langchain.schema <span class="keyword">import</span> (</span><br><span class="line">    AIMessage,</span><br><span class="line">    HumanMessage,</span><br><span class="line">    SystemMessage</span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 初始化聊天对象</span></span><br><span class="line">chat = ChatOpenAI(openai_api_key=<span class="string">&quot;...&quot;</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 向聊天模型发问</span></span><br><span class="line">chat([HumanMessage(content=<span class="string">&quot;Translate this sentence from English to French: I love programming.&quot;</span>)])</span><br><span class="line"></span><br><span class="line"><span class="comment"># 多输入</span></span><br><span class="line">messages = [</span><br><span class="line">    SystemMessage(content=<span class="string">&quot;You are a helpful assistant that translates English to French.&quot;</span>),</span><br><span class="line">    HumanMessage(content=<span class="string">&quot;I love programming.&quot;</span>)</span><br><span class="line">]</span><br><span class="line">chat(messages)</span><br><span class="line"><span class="comment"># 批量输入</span></span><br><span class="line">batch_messages = [</span><br><span class="line">    [</span><br><span class="line">        SystemMessage(content=<span class="string">&quot;You are a helpful assistant that translates English to French.&quot;</span>),</span><br><span class="line">        HumanMessage(content=<span class="string">&quot;I love programming.&quot;</span>)</span><br><span class="line">    ],</span><br><span class="line">    [</span><br><span class="line">        SystemMessage(content=<span class="string">&quot;You are a helpful assistant that translates English to French.&quot;</span>),</span><br><span class="line">        HumanMessage(content=<span class="string">&quot;I love artificial intelligence.&quot;</span>)</span><br><span class="line">    ],</span><br><span class="line">]</span><br><span class="line">result = chat.generate(batch_messages)</span><br><span class="line">result</span><br></pre></td></tr></table></figure>
+<p>省钱小妙招：缓存结果，LangChain提供了两种缓存方案，内存缓存方案和数据库缓存方案，当然支持的数据库缓存方案有很多种。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 导入聊天模型，SQLiteCache模块</span></span><br><span class="line"><span class="keyword">import</span> os</span><br><span class="line">os.environ[<span class="string">&quot;OPENAI_API_KEY&quot;</span>] = <span class="string">&#x27;your apikey&#x27;</span></span><br><span class="line"><span class="keyword">import</span> langchain</span><br><span class="line"><span class="keyword">from</span> langchain.chat_models <span class="keyword">import</span> ChatOpenAI</span><br><span class="line"><span class="keyword">from</span> langchain.cache <span class="keyword">import</span> SQLiteCache</span><br><span class="line"></span><br><span class="line"><span class="comment"># 设置语言模型的缓存数据存储的地址</span></span><br><span class="line">langchain.llm_cache = SQLiteCache(database_path=<span class="string">&quot;.langchain.db&quot;</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 加载 llm 模型</span></span><br><span class="line">llm = ChatOpenAI()</span><br><span class="line"></span><br><span class="line"><span class="comment"># 第一次向模型提问</span></span><br><span class="line">result = llm.predict(<span class="string">&#x27;tell me a joke&#x27;</span>)</span><br><span class="line"><span class="built_in">print</span>(result)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 第二次向模型提问同样的问题</span></span><br><span class="line">result2 = llm.predict(<span class="string">&#x27;tell me a joke&#x27;</span>)</span><br><span class="line"><span class="built_in">print</span>(result2)</span><br></pre></td></tr></table></figure>
+<h3 id="Embeddings"><a href="#Embeddings" class="headerlink" title="Embeddings"></a>Embeddings</h3><p>用于文档、文本或者大量数据的总结、问答场景，一般是和向量库一起使用，实现向量匹配。其实就是把文本等内容转成多维数组，可以后续进行相似性的计算和检索。他相比 fine-tuning 最大的优势就是，不用进行训练，并且可以实时添加新的内容，而不用加一次新的内容就训练一次，并且各方面成本要比 fine-tuning 低很多。</p>
+<h3 id="LLMs"><a href="#LLMs" class="headerlink" title="LLMs"></a>LLMs</h3><p>大模型</p>
+<h2 id="Prompts"><a href="#Prompts" class="headerlink" title="Prompts"></a>Prompts</h2><p>Prompts用来管理 LLM 输入的工具，在从 LLM 获得所需的输出之前需要对提示进行相当多的调整，最终的Promps可以是单个句子或多个句子的组合，它们可以包含变量和条件语句。</p>
+<h3 id="Prompt-Templates"><a href="#Prompt-Templates" class="headerlink" title="Prompt Templates"></a>Prompt Templates</h3><p>生成一个模板，往里填关键字即可，例子如下：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> langchain.llms <span class="keyword">import</span> OpenAI</span><br><span class="line"></span><br><span class="line"><span class="comment"># 定义生成商店的方法</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">generate_store_names</span>(<span class="params">store_features</span>):</span><br><span class="line">    prompt_template = <span class="string">&quot;我正在开一家新的商店，它的主要特点是&#123;&#125;。请帮我想出10个商店的名字。&quot;</span></span><br><span class="line">    prompt = prompt_template.<span class="built_in">format</span>(store_features)</span><br><span class="line"></span><br><span class="line">    llm = OpenAI()</span><br><span class="line">    response = llm.generate(prompt, max_tokens=<span class="number">10</span>, temperature=<span class="number">0.8</span>)</span><br><span class="line"></span><br><span class="line">    store_names = [gen[<span class="number">0</span>].text.strip() <span class="keyword">for</span> gen <span class="keyword">in</span> response.generations]</span><br><span class="line">    <span class="keyword">return</span> store_names</span><br><span class="line"></span><br><span class="line">store_features = <span class="string">&quot;时尚、创意、独特&quot;</span></span><br><span class="line"></span><br><span class="line">store_names = generate_store_names(store_features)</span><br><span class="line"><span class="built_in">print</span>(store_names)</span><br></pre></td></tr></table></figure>
+<h3 id="Few-shot-example"><a href="#Few-shot-example" class="headerlink" title="Few-shot example"></a>Few-shot example</h3><p>少量样本，即prompt templates的批量版本</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> os</span><br><span class="line">os.environ[<span class="string">&quot;OPENAI_API_KEY&quot;</span>] = <span class="string">&#x27;your apikey&#x27;</span></span><br><span class="line"><span class="keyword">from</span> langchain <span class="keyword">import</span> PromptTemplate, FewShotPromptTemplate</span><br><span class="line"><span class="keyword">from</span> langchain.llms <span class="keyword">import</span> OpenAI</span><br><span class="line"></span><br><span class="line">examples = [</span><br><span class="line">    &#123;<span class="string">&quot;word&quot;</span>: <span class="string">&quot;黑&quot;</span>, <span class="string">&quot;antonym&quot;</span>: <span class="string">&quot;白&quot;</span>&#125;,</span><br><span class="line">    &#123;<span class="string">&quot;word&quot;</span>: <span class="string">&quot;伤心&quot;</span>, <span class="string">&quot;antonym&quot;</span>: <span class="string">&quot;开心&quot;</span>&#125;,</span><br><span class="line">]</span><br><span class="line"></span><br><span class="line">example_template = <span class="string">&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">单词: &#123;word&#125;</span></span><br><span class="line"><span class="string">反义词: &#123;antonym&#125;\\n</span></span><br><span class="line"><span class="string">&quot;&quot;&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 创建提示词模版</span></span><br><span class="line">example_prompt = PromptTemplate(</span><br><span class="line">    input_variables=[<span class="string">&quot;word&quot;</span>, <span class="string">&quot;antonym&quot;</span>],</span><br><span class="line">    template=example_template,</span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 创建小样本提示词模版</span></span><br><span class="line">few_shot_prompt = FewShotPromptTemplate(</span><br><span class="line">    examples=examples,</span><br><span class="line">    example_prompt=example_prompt,</span><br><span class="line">    prefix=<span class="string">&quot;给出每个单词的反义词&quot;</span>,</span><br><span class="line">    suffix=<span class="string">&quot;单词: &#123;input&#125;\\n反义词:&quot;</span>,</span><br><span class="line">    input_variables=[<span class="string">&quot;input&quot;</span>],</span><br><span class="line">    example_separator=<span class="string">&quot;\\n&quot;</span>,</span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 格式化小样本提示词</span></span><br><span class="line">prompt_text = few_shot_prompt.<span class="built_in">format</span>(<span class="built_in">input</span>=<span class="string">&quot;粗&quot;</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 调用OpenAI</span></span><br><span class="line">llm = OpenAI(temperature=<span class="number">0.9</span>)</span><br><span class="line"></span><br><span class="line"><span class="built_in">print</span>(llm(prompt_text))</span><br></pre></td></tr></table></figure>
+<h3 id="Example-Selector"><a href="#Example-Selector" class="headerlink" title="Example Selector"></a>Example Selector</h3><p>这个有意思，可以选择距离较近的prompt,例子是：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> os</span><br><span class="line">os.environ[<span class="string">&quot;OPENAI_API_KEY&quot;</span>] = <span class="string">&#x27;your apikey&#x27;</span></span><br><span class="line"><span class="keyword">from</span> langchain.prompts <span class="keyword">import</span> PromptTemplate, FewShotPromptTemplate</span><br><span class="line"><span class="keyword">from</span> langchain.prompts.example_selector <span class="keyword">import</span> LengthBasedExampleSelector</span><br><span class="line"><span class="keyword">from</span> langchain.prompts.example_selector <span class="keyword">import</span> LengthBasedExampleSelector</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment"># These are a lot of examples of a pretend task of creating antonyms.</span></span><br><span class="line">examples = [</span><br><span class="line">    &#123;<span class="string">&quot;word&quot;</span>: <span class="string">&quot;happy&quot;</span>, <span class="string">&quot;antonym&quot;</span>: <span class="string">&quot;sad&quot;</span>&#125;,</span><br><span class="line">    &#123;<span class="string">&quot;word&quot;</span>: <span class="string">&quot;tall&quot;</span>, <span class="string">&quot;antonym&quot;</span>: <span class="string">&quot;short&quot;</span>&#125;,</span><br><span class="line">    &#123;<span class="string">&quot;word&quot;</span>: <span class="string">&quot;energetic&quot;</span>, <span class="string">&quot;antonym&quot;</span>: <span class="string">&quot;lethargic&quot;</span>&#125;,</span><br><span class="line">    &#123;<span class="string">&quot;word&quot;</span>: <span class="string">&quot;sunny&quot;</span>, <span class="string">&quot;antonym&quot;</span>: <span class="string">&quot;gloomy&quot;</span>&#125;,</span><br><span class="line">    &#123;<span class="string">&quot;word&quot;</span>: <span class="string">&quot;windy&quot;</span>, <span class="string">&quot;antonym&quot;</span>: <span class="string">&quot;calm&quot;</span>&#125;,</span><br><span class="line">]</span><br><span class="line"><span class="comment"># 例子格式化模版</span></span><br><span class="line">example_formatter_template = <span class="string">&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">Word: &#123;word&#125;</span></span><br><span class="line"><span class="string">Antonym: &#123;antonym&#125;\n</span></span><br><span class="line"><span class="string">&quot;&quot;&quot;</span></span><br><span class="line">example_prompt = PromptTemplate(</span><br><span class="line">    input_variables=[<span class="string">&quot;word&quot;</span>, <span class="string">&quot;antonym&quot;</span>],</span><br><span class="line">    template=example_formatter_template,</span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 使用 LengthBasedExampleSelector来选择例子</span></span><br><span class="line">example_selector = LengthBasedExampleSelector(</span><br><span class="line">    examples=examples,</span><br><span class="line">    example_prompt=example_prompt,</span><br><span class="line">    <span class="comment"># 最大长度</span></span><br><span class="line">    max_length=<span class="number">25</span>,</span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 使用&#x27;example_selector&#x27;创建小样本提示词模版</span></span><br><span class="line">dynamic_prompt = FewShotPromptTemplate(</span><br><span class="line">    example_selector=example_selector,</span><br><span class="line">    example_prompt=example_prompt,</span><br><span class="line">    prefix=<span class="string">&quot;Give the antonym of every input&quot;</span>,</span><br><span class="line">    suffix=<span class="string">&quot;Word: &#123;input&#125;\nAntonym:&quot;</span>,</span><br><span class="line">    input_variables=[<span class="string">&quot;input&quot;</span>],</span><br><span class="line">    example_separator=<span class="string">&quot;\n\n&quot;</span>,</span><br><span class="line">)</span><br><span class="line"></span><br><span class="line">longString = <span class="string">&quot;big and huge and massive and large and gigantic and tall and much much much much much bigger than everything else&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">print</span>(dynamic_prompt.<span class="built_in">format</span>(<span class="built_in">input</span>=longString))</span><br></pre></td></tr></table></figure>
+<p>官方也提供了根据最大边际相关性、文法重叠、语义相似性来选择示例</p>
+<h2 id="Indexes"><a href="#Indexes" class="headerlink" title="Indexes"></a>Indexes</h2><p>索引是指对文档进行结构化的方法，也就是把乱七八糟的数据结构化的过程。包括Document Loaders（文档加载器）、Text Splitters（文本拆分器）、VectorStores（向量存储器）以及 Retrievers（检索器）四个组件</p>
+<h3 id="Document-Loaders"><a href="#Document-Loaders" class="headerlink" title="Document Loaders"></a>Document Loaders</h3><p>指定源进行加载数据的。将特定格式的数据，转换为文本。如 CSV、File Directory、HTML、JSON、Markdown、PDF。另外使用相关接口处理本地知识，或者在线知识。如 AirbyteJSON、Airtable、Alibaba Cloud MaxCompute、wikipedia、BiliBili、GitHub、GitBook 等等。</p>
+<h3 id="Text-Splitters"><a href="#Text-Splitters" class="headerlink" title="Text Splitters"></a>Text Splitters</h3><p>由于模型对输入的字符长度有限制，我们在碰到很长的文本时，需要把文本分割成多个小的文本片段。<br>文本分割最简单的方式是按照字符长度进行分割，但是这会带来很多问题，比如说如果文本是一段代码，一个函数被分割到两段之后就成了没有意义的字符，所以整体的原则是把<strong>语义相关</strong>的文本片段放在一起。<br>LangChain 中最基本的文本分割器是 CharacterTextSplitter ，它按照指定的分隔符（默认“\n\n”）进行分割，并且考虑文本片段的最大长度。例子：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> langchain.text_splitter <span class="keyword">import</span> CharacterTextSplitter</span><br><span class="line"></span><br><span class="line"><span class="comment"># 初始字符串</span></span><br><span class="line">state_of_the_union = <span class="string">&quot;...&quot;</span></span><br><span class="line"></span><br><span class="line">text_splitter = CharacterTextSplitter(</span><br><span class="line">    separator = <span class="string">&quot;\\n\\n&quot;</span>,</span><br><span class="line">    chunk_size = <span class="number">1000</span>,</span><br><span class="line">    chunk_overlap  = <span class="number">200</span>,</span><br><span class="line">    length_function = <span class="built_in">len</span>,</span><br><span class="line">)</span><br><span class="line"></span><br><span class="line">texts = text_splitter.create_documents([state_of_the_union])</span><br></pre></td></tr></table></figure>
+<p>这个仅仅是例子，LangChain支持多种高级文本分割器，包括根据代码语义、openAI的token数、markdown结构等切割文本。</p>
+<h3 id="VectorStores"><a href="#VectorStores" class="headerlink" title="VectorStores"></a>VectorStores</h3><p>存储提取的文本向量，包括 Faiss、Milvus、Pinecone、Chroma 等。</p>
+<h3 id="Retrievers"><a href="#Retrievers" class="headerlink" title="Retrievers"></a>Retrievers</h3><p>检索器是一种便于模型查询的存储数据的方式，LangChain 约定检索器组件至少有一个方法 get_relevant_texts，这个方法接收查询字符串，返回一组文档</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> langchain.chains <span class="keyword">import</span> RetrievalQA</span><br><span class="line"><span class="keyword">from</span> langchain.llms <span class="keyword">import</span> OpenAI</span><br><span class="line"><span class="keyword">from</span> langchain.document_loaders <span class="keyword">import</span> TextLoader</span><br><span class="line"><span class="keyword">from</span> langchain.indexes <span class="keyword">import</span> VectorstoreIndexCreator</span><br><span class="line">loader = TextLoader(<span class="string">&#x27;../state_of_the_union.txt&#x27;</span>, encoding=<span class="string">&#x27;utf8&#x27;</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 对加载的内容进行索引</span></span><br><span class="line">index = VectorstoreIndexCreator().from_loaders([loader])</span><br><span class="line"></span><br><span class="line">query = <span class="string">&quot;What did the president say about Ketanji Brown Jackson&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 通过query的方式找到语义检索的结果</span></span><br><span class="line">index.query(query)</span><br></pre></td></tr></table></figure>
+<h2 id="Chains"><a href="#Chains" class="headerlink" title="Chains"></a>Chains</h2><p>是一种将LLM和其他多个组件连接在一起的工具，以实现复杂的任务。类似于pytorch的sequence<br>链允许我们将多个组件组合在一起以创建一个单一的、连贯的任务。例如，我们可以创建一个链，它接受用户输入，使用 PromptTemplate 对其进行格式化，然后将格式化的响应传递给 LLM。另外我们也可以通过将多个链组合在一起，或者将链与其他组件组合来构建更复杂的链。<br>所有的chain方法共享call和run方法，call方法返回输入输出键值对（字典），run方法仅返回输出字符串</p>
+<h3 id="LLMChain"><a href="#LLMChain" class="headerlink" title="LLMChain"></a>LLMChain</h3><p>LLMChain 是一个简单的链，它围绕语言模型添加了一些功能。它接受一个<strong>提示模板</strong>，将其与用户输入进行格式化，并返回 LLM 的响应。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> langchain <span class="keyword">import</span> PromptTemplate, OpenAI, LLMChain</span><br><span class="line"></span><br><span class="line">prompt_template = <span class="string">&quot;What is a good name for a company that makes &#123;product&#125;?&quot;</span></span><br><span class="line"></span><br><span class="line">llm = OpenAI(temperature=<span class="number">0</span>)</span><br><span class="line">llm_chain = LLMChain(</span><br><span class="line">    llm=llm,</span><br><span class="line">    prompt=PromptTemplate.from_template(prompt_template)</span><br><span class="line">)</span><br><span class="line">llm_chain(<span class="string">&quot;colorful socks&quot;</span>)</span><br></pre></td></tr></table></figure>
+<p>LLMChain独有的方法</p>
+<ul>
+<li>apply 方法允许对一个输入列表进行调用，即批处理的call方法</li>
+<li>generate 方法跟apply方法类似，但返回LLMResult，包含更多的元信息，如令牌使用情况和完成原因</li>
+<li>predict 方法类似于 run 方法，不同之处在于输入键被指定为关键字参数，而不是一个 Python 字典。<code>llm_chain.predict(product=&quot;colorful socks&quot;)</code></li>
+</ul>
+<h3 id="SimpleSequentialChain"><a href="#SimpleSequentialChain" class="headerlink" title="SimpleSequentialChain"></a>SimpleSequentialChain</h3><p>顺序链的最简单形式，其中每个步骤都有一个<strong>单一的输入&#x2F;输出</strong>，并且一个步骤的输出是下一步的输入。<br>就是把LLMChain线性组合的工具，例如：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> langchain.llms <span class="keyword">import</span> OpenAI</span><br><span class="line"><span class="keyword">from</span> langchain.chains <span class="keyword">import</span> LLMChain</span><br><span class="line"><span class="keyword">from</span> langchain.prompts <span class="keyword">import</span> PromptTemplate</span><br><span class="line"><span class="keyword">from</span> langchain.chains <span class="keyword">import</span> SimpleSequentialChain</span><br><span class="line"></span><br><span class="line"><span class="comment"># 定义第一个chain</span></span><br><span class="line">llm = OpenAI(temperature=<span class="number">.7</span>)</span><br><span class="line">template = <span class="string">&quot;&quot;&quot;You are a playwright. Given the title of play, it is your job to write a synopsis for that title.</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">Title: &#123;title&#125;</span></span><br><span class="line"><span class="string">Playwright: This is a synopsis for the above play:&quot;&quot;&quot;</span></span><br><span class="line">prompt_template = PromptTemplate(input_variables=[<span class="string">&quot;title&quot;</span>], template=template)</span><br><span class="line">synopsis_chain = LLMChain(llm=llm, prompt=prompt_template)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 定义第二个chain</span></span><br><span class="line"></span><br><span class="line">llm = OpenAI(temperature=<span class="number">.7</span>)</span><br><span class="line">template = <span class="string">&quot;&quot;&quot;You are a play critic from the New York Times. Given the synopsis of play, it is your job to write a review for that play.</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">Play Synopsis:</span></span><br><span class="line"><span class="string">&#123;synopsis&#125;</span></span><br><span class="line"><span class="string">Review from a New York Times play critic of the above play:&quot;&quot;&quot;</span></span><br><span class="line">prompt_template = PromptTemplate(input_variables=[<span class="string">&quot;synopsis&quot;</span>], template=template)</span><br><span class="line">review_chain = LLMChain(llm=llm, prompt=prompt_template)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 通过简单顺序链组合两个LLMChain</span></span><br><span class="line">overall_chain = SimpleSequentialChain(chains=[synopsis_chain, review_chain], verbose=<span class="literal">True</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 执行顺序链</span></span><br><span class="line">review = overall_chain.run(<span class="string">&quot;Tragedy at sunset on the beach&quot;</span>)</span><br></pre></td></tr></table></figure>
+<h3 id="SequentialChain"><a href="#SequentialChain" class="headerlink" title="SequentialChain"></a>SequentialChain</h3><p>相比 SimpleSequentialChain 只允许有单个输入输出，它是一种更通用的顺序链形式，允许<strong>多个输入&#x2F;输出</strong>。</p>
+<p>特别重要的是： 我们如何命名输入&#x2F;输出变量名称。在上面的示例中，我们不必考虑这一点，因为我们只是将一个链的输出直接作为输入传递给下一个链，但在这里我们确实需要担心这一点，因为我们有多个输入。<br>例如：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 这是第一个 LLMChain，根据戏剧的标题和设定的时代，生成一个简介。</span></span><br><span class="line">llm = OpenAI(temperature=<span class="number">.7</span>)</span><br><span class="line">template = <span class="string">&quot;&quot;&quot;You are a playwright. Given the title of play and the era it is set in, it is your job to write a synopsis for that title.</span></span><br><span class="line"><span class="string"># 这里定义了两个输入变量title和era，并定义一个输出变量：synopsis</span></span><br><span class="line"><span class="string">Title: &#123;title&#125;</span></span><br><span class="line"><span class="string">Era: &#123;era&#125;</span></span><br><span class="line"><span class="string">Playwright: This is a synopsis for the above play:&quot;&quot;&quot;</span></span><br><span class="line">prompt_template = PromptTemplate(input_variables=[<span class="string">&quot;title&quot;</span>, <span class="string">&quot;era&quot;</span>], template=template)</span><br><span class="line">synopsis_chain = LLMChain(llm=llm, prompt=prompt_template, output_key=<span class="string">&quot;synopsis&quot;</span>)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment"># 这是第二个 LLMChain，根据剧情简介撰写一篇戏剧评论。</span></span><br><span class="line">llm = OpenAI(temperature=<span class="number">.7</span>)</span><br><span class="line">template = <span class="string">&quot;&quot;&quot;You are a play critic from the New York Times. Given the synopsis of play, it is your job to write a review for that play.</span></span><br><span class="line"><span class="string"># 定义了一个输入变量：synopsis，输出变量：review</span></span><br><span class="line"><span class="string">Play Synopsis:</span></span><br><span class="line"><span class="string">&#123;synopsis&#125;</span></span><br><span class="line"><span class="string">Review from a New York Times play critic of the above play:&quot;&quot;&quot;</span></span><br><span class="line">prompt_template = PromptTemplate(input_variables=[<span class="string">&quot;synopsis&quot;</span>], template=template)</span><br><span class="line">review_chain = LLMChain(llm=llm, prompt=prompt_template, output_key=<span class="string">&quot;review&quot;</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 执行顺序链：</span></span><br><span class="line"></span><br><span class="line">overall_chain(&#123;<span class="string">&quot;title&quot;</span>:<span class="string">&quot;Tragedy at sunset on the beach&quot;</span>, <span class="string">&quot;era&quot;</span>: <span class="string">&quot;Victorian England&quot;</span>&#125;)</span><br></pre></td></tr></table></figure>
+<p>执行结果会将每一步的输出都打印出来</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">&gt; Entering new SequentialChain chain...</span><br><span class="line"></span><br><span class="line">&gt; Finished chain.</span><br><span class="line"></span><br><span class="line">&#123;<span class="string">&#x27;title&#x27;</span>: <span class="string">&#x27;Tragedy at sunset on the beach&#x27;</span>,</span><br><span class="line"> <span class="string">&#x27;era&#x27;</span>: <span class="string">&#x27;Victorian England&#x27;</span>,</span><br><span class="line"> <span class="string">&#x27;synopsis&#x27;</span>: <span class="string">&quot;xxxxxx&quot;</span>,</span><br><span class="line"> <span class="string">&#x27;review&#x27;</span>: <span class="string">&quot;xxxxxxx&quot;</span>&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="TransformChain"><a href="#TransformChain" class="headerlink" title="TransformChain"></a>TransformChain</h3><p>转换链允许我们创建一个自定义的<strong>转换函数</strong>来处理输入，将处理后的结果用作<strong>下一个链的输入</strong>。其实是类似于LLMChain的一个东西。<br>如下示例我们将创建一个转换函数，它接受超长文本，将文本过滤为仅前 3 段，然后将其传递到 LLMChain 中以总结这些内容。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> langchain.chains <span class="keyword">import</span> TransformChain, LLMChain, SimpleSequentialChain</span><br><span class="line"><span class="keyword">from</span> langchain.llms <span class="keyword">import</span> OpenAI</span><br><span class="line"><span class="keyword">from</span> langchain.prompts <span class="keyword">import</span> PromptTemplate</span><br><span class="line"></span><br><span class="line"><span class="comment"># 模拟超长文本</span></span><br><span class="line"><span class="keyword">with</span> <span class="built_in">open</span>(<span class="string">&quot;../../state_of_the_union.txt&quot;</span>) <span class="keyword">as</span> f:</span><br><span class="line">    state_of_the_union = f.read()</span><br><span class="line"></span><br><span class="line"><span class="comment"># 定义转换方法，入参和出参都是字典，取前三段</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">transform_func</span>(<span class="params">inputs: <span class="built_in">dict</span></span>) -&gt; <span class="built_in">dict</span>:</span><br><span class="line">    text = inputs[<span class="string">&quot;text&quot;</span>]</span><br><span class="line">    shortened_text = <span class="string">&quot;\n\n&quot;</span>.join(text.split(<span class="string">&quot;\n\n&quot;</span>)[:<span class="number">3</span>])</span><br><span class="line">    <span class="keyword">return</span> &#123;<span class="string">&quot;output_text&quot;</span>: shortened_text&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment"># 转换链：输入变量：text，输出变量：output_text</span></span><br><span class="line">transform_chain = TransformChain(</span><br><span class="line">    input_variables=[<span class="string">&quot;text&quot;</span>], output_variables=[<span class="string">&quot;output_text&quot;</span>], transform=transform_func</span><br><span class="line">)</span><br><span class="line"><span class="comment"># prompt模板描述</span></span><br><span class="line">template = <span class="string">&quot;&quot;&quot;Summarize this text:</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">&#123;output_text&#125;</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">Summary:&quot;&quot;&quot;</span></span><br><span class="line"><span class="comment"># prompt模板</span></span><br><span class="line">prompt = PromptTemplate(input_variables=[<span class="string">&quot;output_text&quot;</span>], template=template)</span><br><span class="line"><span class="comment"># llm链</span></span><br><span class="line">llm_chain = LLMChain(llm=OpenAI(), prompt=prompt)</span><br><span class="line"><span class="comment"># 使用顺序链</span></span><br><span class="line">sequential_chain = SimpleSequentialChain(chains=[transform_chain, llm_chain])</span><br><span class="line"><span class="comment"># 开始执行</span></span><br><span class="line">sequential_chain.run(state_of_the_union)</span><br><span class="line"><span class="comment"># 结果</span></span><br><span class="line"><span class="string">&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">    &#x27; The speaker addresses the nation, noting that while last year they were kept apart due to COVID-19, this year they are together again.</span></span><br><span class="line"><span class="string">    They are reminded that regardless of their political affiliations, they are all Americans.&#x27;</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">&quot;&quot;&quot;</span></span><br></pre></td></tr></table></figure>
+<h2 id="Agents"><a href="#Agents" class="headerlink" title="Agents"></a>Agents</h2><p>是一种使用LLM做出决策的工具，它们可以执行特定的任务并生成文本输出。Agents通常由三个部分组成：Action、Observation和Decision。Action是代理执行的操作，Observation是代理接收到的信息，Decision是代理基于Action和Observation做出的决策。<br>可以简单的理解为他可以<strong>动态</strong>的帮我们选择和调用 chain 或者已有的工具。代理主要有两种类型 Action agents 和 Plan-and-execute agents。</p>
+<h3 id="动态-Action-agents"><a href="#动态-Action-agents" class="headerlink" title="动态 Action agents"></a>动态 Action agents</h3><p>行为代理: 在每个时间步，使用所有先前动作的输出来决定下一个动作。下图展示了行为代理执行的流程。</p>
+<h3 id="静态-Plan-and-execute-agents"><a href="#静态-Plan-and-execute-agents" class="headerlink" title="静态 Plan-and-execute agents"></a>静态 Plan-and-execute agents</h3><p>预先决定完整的操作顺序，然后执行所有操作而不更新计划，下面是其流程。</p>
+<ol>
+<li>接收用户输入</li>
+<li>计划要采取的完整步骤顺序</li>
+<li>按顺序执行步骤，将过去步骤的输出作为未来步骤的输入传递</li>
+</ol>
+<h2 id="Memory"><a href="#Memory" class="headerlink" title="Memory"></a>Memory</h2><p>是一种用于存储数据的工具，由于LLM 没有任何长期记忆，它有助于在多次调用之间保持状态。<br>langchain 提供了不同的 Memory 组件完成内容记忆，如下是目前提供的组件。</p>
+<ul>
+<li><strong>ConversationBufferMemory</strong>：将聊天内存缓存到内存中，不必每次手动拼接</li>
+<li><strong>ConversationBufferWindowMemory</strong>：相比较第一个记忆组件，该组件增加了一个窗口参数，会保存最近k轮聊天内容。</li>
+<li><strong>ConversationTokenBufferMemory</strong>：相比第一个，使用token而不是轮数来刷新缓冲区</li>
+<li><strong>ConversationSummaryMemory</strong>：存储摘要而不是具体聊天内容</li>
+<li><strong>ConversationSummaryBufferMemory</strong>：存储摘要，且根据token数量决定何时刷新</li>
+<li><strong>VectorStoreRetrieverMemory</strong>：将聊天缓存到向量数据库中，并根据用户输入信息返回向量数据库中最相似的k组对话</li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/oliviablog.github.io/tags/AIGC/" rel="tag"># AIGC</a>
+              <a href="/oliviablog.github.io/tags/%E5%B7%A5%E5%85%B7%E9%93%BE/" rel="tag"># 工具链</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/oliviablog.github.io/2023/10/05/DS-Lecture4%20Raft/" rel="prev" title="分布式系统 Raft">
+      <i class="fa fa-chevron-left"></i> 分布式系统 Raft
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#LangChain%E6%98%AF%E4%BB%80%E4%B9%88%EF%BC%9F"><span class="nav-number">1.</span> <span class="nav-text">LangChain是什么？</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#LangChain-%E5%85%B3%E9%94%AE%E7%BB%84%E4%BB%B6"><span class="nav-number">2.</span> <span class="nav-text">LangChain 关键组件</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Models"><span class="nav-number">2.1.</span> <span class="nav-text">Models</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Chat-Modals"><span class="nav-number">2.1.1.</span> <span class="nav-text">Chat Modals</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Embeddings"><span class="nav-number">2.1.2.</span> <span class="nav-text">Embeddings</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#LLMs"><span class="nav-number">2.1.3.</span> <span class="nav-text">LLMs</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Prompts"><span class="nav-number">2.2.</span> <span class="nav-text">Prompts</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Prompt-Templates"><span class="nav-number">2.2.1.</span> <span class="nav-text">Prompt Templates</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Few-shot-example"><span class="nav-number">2.2.2.</span> <span class="nav-text">Few-shot example</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Example-Selector"><span class="nav-number">2.2.3.</span> <span class="nav-text">Example Selector</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Indexes"><span class="nav-number">2.3.</span> <span class="nav-text">Indexes</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Document-Loaders"><span class="nav-number">2.3.1.</span> <span class="nav-text">Document Loaders</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Text-Splitters"><span class="nav-number">2.3.2.</span> <span class="nav-text">Text Splitters</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#VectorStores"><span class="nav-number">2.3.3.</span> <span class="nav-text">VectorStores</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Retrievers"><span class="nav-number">2.3.4.</span> <span class="nav-text">Retrievers</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Chains"><span class="nav-number">2.4.</span> <span class="nav-text">Chains</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#LLMChain"><span class="nav-number">2.4.1.</span> <span class="nav-text">LLMChain</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#SimpleSequentialChain"><span class="nav-number">2.4.2.</span> <span class="nav-text">SimpleSequentialChain</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#SequentialChain"><span class="nav-number">2.4.3.</span> <span class="nav-text">SequentialChain</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#TransformChain"><span class="nav-number">2.4.4.</span> <span class="nav-text">TransformChain</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Agents"><span class="nav-number">2.5.</span> <span class="nav-text">Agents</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%8A%A8%E6%80%81-Action-agents"><span class="nav-number">2.5.1.</span> <span class="nav-text">动态 Action agents</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%9D%99%E6%80%81-Plan-and-execute-agents"><span class="nav-number">2.5.2.</span> <span class="nav-text">静态 Plan-and-execute agents</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Memory"><span class="nav-number">2.6.</span> <span class="nav-text">Memory</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">John Doe</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/oliviablog.github.io/archives/">
+        
+          <span class="site-state-item-count">8</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/oliviablog.github.io/tags/">
+          
+        <span class="site-state-item-count">10</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">John Doe</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://pisces.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/oliviablog.github.io/lib/anime.min.js"></script>
+  <script src="/oliviablog.github.io/lib/velocity/velocity.min.js"></script>
+  <script src="/oliviablog.github.io/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/oliviablog.github.io/js/utils.js"></script>
+
+<script src="/oliviablog.github.io/js/motion.js"></script>
+
+
+<script src="/oliviablog.github.io/js/schemes/pisces.js"></script>
+
+
+<script src="/oliviablog.github.io/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+<script>
+if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8/dist/mermaid.min.js', () => {
+    mermaid.initialize({
+      theme    : 'forest',
+      logLevel : 3,
+      flowchart: { curve     : 'linear' },
+      gantt    : { axisFormat: '%m/%d/%Y' },
+      sequence : { actorMargin: 50 }
+    });
+  }, window.mermaid);
+}
+</script>
+
+
+  
+
+  
+
+</body>
+</html>
