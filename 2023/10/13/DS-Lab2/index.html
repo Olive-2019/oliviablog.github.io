@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 6.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/oliviablog.github.io/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/oliviablog.github.io/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/oliviablog.github.io/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/oliviablog.github.io/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/oliviablog.github.io/css/main.css">
+
+
+<link rel="stylesheet" href="/oliviablog.github.io/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"olive-2019.github.io","root":"/oliviablog.github.io/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="mit6.824 lab2。lab2 是后续实验的基础，实现一个Raft，lab3实现的KV是在Raft上的。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="DS_Lab2">
+<meta property="og:url" content="https://olive-2019.github.io/oliviablog.github.io/2023/10/13/DS-Lab2/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="mit6.824 lab2。lab2 是后续实验的基础，实现一个Raft，lab3实现的KV是在Raft上的。">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2023-10-13T11:28:07.000Z">
+<meta property="article:modified_time" content="2023-10-19T08:57:34.518Z">
+<meta property="article:author" content="John Doe">
+<meta property="article:tag" content="Raft">
+<meta property="article:tag" content="分布式">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="https://olive-2019.github.io/oliviablog.github.io/2023/10/13/DS-Lab2/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>DS_Lab2 | Hexo</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/oliviablog.github.io/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Hexo</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/oliviablog.github.io/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/oliviablog.github.io/about/" rel="section"><i class="fa fa-user fa-fw"></i>About</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/oliviablog.github.io/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/oliviablog.github.io/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://olive-2019.github.io/oliviablog.github.io/2023/10/13/DS-Lab2/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/oliviablog.github.io/images/avatar.gif">
+      <meta itemprop="name" content="John Doe">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Hexo">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          DS_Lab2
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2023-10-13 19:28:07" itemprop="dateCreated datePublished" datetime="2023-10-13T19:28:07+08:00">2023-10-13</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2023-10-19 16:57:34" itemprop="dateModified" datetime="2023-10-19T16:57:34+08:00">2023-10-19</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>mit6.824 lab2。lab2 是后续实验的基础，实现一个Raft，lab3实现的KV是在Raft上的。</p>
+<span id="more"></span>
+
+<h1 id="论文中给出的算法"><a href="#论文中给出的算法" class="headerlink" title="论文中给出的算法"></a>论文中给出的算法</h1><h2 id="State状态"><a href="#State状态" class="headerlink" title="State状态"></a>State状态</h2><h3 id="需要持久化的state（所有server）"><a href="#需要持久化的state（所有server）" class="headerlink" title="需要持久化的state（所有server）"></a>需要持久化的state（所有server）</h3><ol>
+<li><strong>currentTerm</strong>：server所处的term，也是该server所得知的最新term</li>
+<li><strong>votedFor</strong>：如果是null，则该term内尚未投票，如果是candidateID，则该term中的选举已经投票给了该candidate（不能再投票）。</li>
+<li><strong>log</strong>[]：当前server的所有log entries，每一条log entry包含命令和term编号</li>
+</ol>
+<h3 id="易失state（所有server）"><a href="#易失state（所有server）" class="headerlink" title="易失state（所有server）"></a>易失state（所有server）</h3><ol>
+<li><strong>commitIndex</strong>：最大的已经commit的log entries index</li>
+<li><strong>lastApplied</strong>：最新加入的log entries index</li>
+</ol>
+<h3 id="易失state（leader独有）"><a href="#易失state（leader独有）" class="headerlink" title="易失state（leader独有）"></a>易失state（leader独有）</h3><ol>
+<li><strong>nextIndex</strong>[]：需要发给每一个follower的下一条log entry（初始化值是leader的最后一个log entry的下一个值）</li>
+<li><strong>matchIndex</strong>[]：每个follower当前匹配到哪一条log entry（初始化值为0）</li>
+</ol>
+<h2 id="AppendEntries-RPC"><a href="#AppendEntries-RPC" class="headerlink" title="AppendEntries RPC"></a>AppendEntries RPC</h2><p>leader-&gt;follower</p>
+<h3 id="参数"><a href="#参数" class="headerlink" title="参数"></a>参数</h3><ol>
+<li><strong>term</strong>：leader的当前term编号</li>
+<li><strong>leaderId</strong>：leader的id，方便follower将收到的信息转发给leader</li>
+<li><strong>prevLogIndex</strong>：前一个log的index，方便follower确认一致性</li>
+<li><strong>prevLogTerm</strong>：前一个log的term，功能同上</li>
+<li><strong>entries</strong>[]：需要拷贝的多条log entry，心跳信息会是空</li>
+<li><strong>leaderCommit</strong>：leader提交的日志 entry index</li>
+</ol>
+<p>或许可以带上leader自己的log entries，便于找nextIndex</p>
+<h3 id="返回值"><a href="#返回值" class="headerlink" title="返回值"></a>返回值</h3><ol>
+<li><strong>term</strong>：follower所处的term，便于leader确认自己的地位</li>
+<li><strong>success</strong>：用于标志follower是否成功复制log entries。如果prevLogIndex&#x2F;Term不匹配就会返回false</li>
+</ol>
+<h3 id="Follower的处理逻辑"><a href="#Follower的处理逻辑" class="headerlink" title="Follower的处理逻辑"></a>Follower的处理逻辑</h3><ol>
+<li>直接返回false：term&lt; currentTerm or prevLogIndex&#x2F;Term对应的log不存在</li>
+<li>如果存在冲突entry，即相同的index，不同的term（就是leader没有的数据），删掉现有的entries并写入leader给的数据</li>
+<li>将不存在的entries追加到系统中</li>
+<li>当leaderCommit &gt; commitIndex时，更新commitIndex &#x3D; min(leaderCommit, 目前最新entry的index)</li>
+</ol>
+<h2 id="RequestVote-RPC"><a href="#RequestVote-RPC" class="headerlink" title="RequestVote RPC"></a>RequestVote RPC</h2><p>candidate-&gt;follower</p>
+<h3 id="参数-1"><a href="#参数-1" class="headerlink" title="参数"></a>参数</h3><ol>
+<li><strong>term</strong>：当前竞选leader的candidate的term</li>
+<li><strong>candidateId</strong>：当前竞选leader的candidate的ID</li>
+<li><strong>lastLogIndex</strong>：最后一条log entry的index</li>
+<li><strong>lastLogTerm</strong>：最后一条log entry的term</li>
+</ol>
+<h3 id="返回值-1"><a href="#返回值-1" class="headerlink" title="返回值"></a>返回值</h3><ol>
+<li><strong>term</strong>：follower的term，如果candidate没有这个大，将会退回到follower状态</li>
+<li><strong>voteGranted</strong>：该follower是否投票给该节点</li>
+</ol>
+<h3 id="follower处理逻辑"><a href="#follower处理逻辑" class="headerlink" title="follower处理逻辑"></a>follower处理逻辑</h3><ol>
+<li>直接返回false：term &lt; currentTerm</li>
+<li>如果 （votedFor &#x3D;&#x3D; null || votedFor &#x3D;&#x3D; candidateId） &amp;&amp; candidate的log比当前节点新，投票给该节点，否则拒绝该节点</li>
+</ol>
+<h2 id="Server-Rules"><a href="#Server-Rules" class="headerlink" title="Server Rules"></a>Server Rules</h2><p>所有server都需要执行的：</p>
+<ol>
+<li>if commitIndex &gt; lastApplied: commitIndex之前的日志将会被执行，更新lastApplied到commitIndex</li>
+<li>if RPC请求或回复包含term，且term &gt; currentTerm，则更新currentTerm，并转换到follower</li>
+</ol>
+<h3 id="Follower"><a href="#Follower" class="headerlink" title="Follower"></a>Follower</h3><ol>
+<li>回应candidate和leader的RPC调用（自己注册一个函数）</li>
+<li>选举计时器超时参加选举</li>
+</ol>
+<h3 id="Candidate"><a href="#Candidate" class="headerlink" title="Candidate"></a>Candidate</h3><ol>
+<li>开始参加选举的动作：currentTerm自增、给自己投票、随机一个新的选举计时器、给其他server发送RequestVote RPC</li>
+<li>if 收到过半服务器的投票：成为leader</li>
+<li>if 收到新leader的AppendEntries RPC：成为follower</li>
+<li>if 选举计时器超时：重新参加选举</li>
+</ol>
+<h3 id="Leader"><a href="#Leader" class="headerlink" title="Leader"></a>Leader</h3><ol>
+<li>当选后：立即给其他server发送心跳信息（空AppendEntries），防止超时重新选举</li>
+<li>从client处接收到command：向本地log写入entry，当该log entry commit时，向client回复信息</li>
+<li>if last log entries index &gt;&#x3D; 某一个follower的nextIndex，向该follower发送AppendEntries RPC新增其日志。如果成功，则更新nextIndex和matchIndex，如果失败，则降低其nextIndex重试</li>
+<li>if 存在N&gt;commitIndex &amp;&amp; N &lt;&#x3D; 过半数的 matchIndex &amp;&amp; index为N的日志的term&#x3D;&#x3D;currentTerm， then 更新commitIndex &#x3D; N</li>
+</ol>
+<h1 id="实验"><a href="#实验" class="headerlink" title="实验"></a>实验</h1><p>lab2 是后续实验的基础，实现一个Raft，lab3实现的KV是在Raft上的。</p>
+<h2 id="Lab2A"><a href="#Lab2A" class="headerlink" title="Lab2A"></a>Lab2A</h2><p>实现一个Raft选举算法</p>
+<h3 id="类架构"><a href="#类架构" class="headerlink" title="类架构"></a>类架构</h3><pre class="mermaid">classDiagram
+    FileOperator <|-- ServerAddressReader
+    State <-- AppendEntries
+    State <-- RequestVote
+    State <-- TimeOutCounter
+    State <-- LogEntry
+    State <-- ServerAddressReader
+    Raft <-- State
+    State <|-- Leader
+    State <|-- Follower
+    State <|-- Candidate
+    POJO <|-- AppendEntries
+    POJO <|-- RequestVote
+    POJO <|-- LogEntry</pre>
+
+<h3 id="线程梳理"><a href="#线程梳理" class="headerlink" title="线程梳理"></a>线程梳理</h3><p>Raft运行主线程，不断地切换状态，切换的过程是由上一个状态创建新状态并返回其指针<br>状态的run函数在Raft主线程中运行，会创建多个线程。以下按状态机类型梳理线程</p>
+<h4 id="所有server，尤其是Follower"><a href="#所有server，尤其是Follower" class="headerlink" title="所有server，尤其是Follower"></a>所有server，尤其是Follower</h4><ol>
+<li>计算超时的线程timeOut。（单独开一个类来承担这个职责）Sleep超时计时器的时间后检测是否有收到过AppendEntries RPC（这里需要一个标志位）。如果收到过，则复位标志位，并Sleep，如果没有收到过，则终止当前状态（该状态会创建candidate状态返回），退出该线程。这里的终止状态需要考虑到RPC Server的退出，根据<a target="_blank" rel="noopener" href="https://github.com/qicosmos/rest_rpc/issues/51">rest_rpc在GitHub的issue</a>中提到的，可以通过智能指针创建server，退出时将其置为nullptr。</li>
+<li>等待接收AppendEntries。开一条线程用于RPC通信，接收其他server（此处指leader）的AppendEntries请求，这里需要对log相关变量加锁，避免产生幻觉</li>
+<li>投票线程RequestVote。开一条线程用于RPC通信，接收其他server（此处指candidate）的RequestVote请求，这里需要对vote相关变量加锁，避免产生幻觉<pre class="mermaid">stateDiagram-v2
+ [*] --> timeoutCounter
+ timeoutCounter --> [*]
+ [*] --> receiveAppendEntries
+ receiveAppendEntries --> [*]
+ [*] --> receiveRequestVote
+ receiveRequestVote --> [*]</pre></li>
+</ol>
+<h4 id="Leader-1"><a href="#Leader-1" class="headerlink" title="Leader"></a>Leader</h4><ol>
+<li>等待client的start。开一条线程用于RPC通信，接收client的command，这里需要对log相关变量加锁，避免产生幻觉</li>
+<li>发送AppendEntries的线程。调用其他server的AppendEntries，并异步等待结果。<pre class="mermaid">stateDiagram-v2
+ [*] --> timeoutCounter
+ timeoutCounter --> [*]
+ [*] --> receiveAppendEntries
+ receiveAppendEntries --> [*]
+ 
+ [*] --> receiveRequestVote
+ receiveRequestVote --> [*]
+
+ [*] --> receiveStart
+ receiveStart --> [*]
+
+ [*] --> sendAppendEntries
+ sendAppendEntries --> [*]</pre></li>
+</ol>
+<h4 id="Candidate-1"><a href="#Candidate-1" class="headerlink" title="Candidate"></a>Candidate</h4><ol>
+<li>发送RequestVote的线程。调用其他server的RequestVote，并异步等待结果。<pre class="mermaid">stateDiagram-v2
+ [*] --> timeoutCounter
+ timeoutCounter --> [*]
+ [*] --> receiveAppendEntries
+ receiveAppendEntries --> [*]
+ 
+ [*] --> receiveRequestVote
+ receiveRequestVote --> [*]
+
+ [*] --> sendRequestVote
+ sendRequestVote --> [*]</pre></li>
+</ol>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/oliviablog.github.io/tags/Raft/" rel="tag"># Raft</a>
+              <a href="/oliviablog.github.io/tags/%E5%88%86%E5%B8%83%E5%BC%8F/" rel="tag"># 分布式</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/oliviablog.github.io/2023/10/10/langchain/" rel="prev" title="langchain">
+      <i class="fa fa-chevron-left"></i> langchain
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/oliviablog.github.io/2023/10/16/LangChainExpressionLanguage/" rel="next" title="LangChain Expression Language">
+      LangChain Expression Language <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E8%AE%BA%E6%96%87%E4%B8%AD%E7%BB%99%E5%87%BA%E7%9A%84%E7%AE%97%E6%B3%95"><span class="nav-number">1.</span> <span class="nav-text">论文中给出的算法</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#State%E7%8A%B6%E6%80%81"><span class="nav-number">1.1.</span> <span class="nav-text">State状态</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%9C%80%E8%A6%81%E6%8C%81%E4%B9%85%E5%8C%96%E7%9A%84state%EF%BC%88%E6%89%80%E6%9C%89server%EF%BC%89"><span class="nav-number">1.1.1.</span> <span class="nav-text">需要持久化的state（所有server）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%98%93%E5%A4%B1state%EF%BC%88%E6%89%80%E6%9C%89server%EF%BC%89"><span class="nav-number">1.1.2.</span> <span class="nav-text">易失state（所有server）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%98%93%E5%A4%B1state%EF%BC%88leader%E7%8B%AC%E6%9C%89%EF%BC%89"><span class="nav-number">1.1.3.</span> <span class="nav-text">易失state（leader独有）</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#AppendEntries-RPC"><span class="nav-number">1.2.</span> <span class="nav-text">AppendEntries RPC</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%8F%82%E6%95%B0"><span class="nav-number">1.2.1.</span> <span class="nav-text">参数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%BF%94%E5%9B%9E%E5%80%BC"><span class="nav-number">1.2.2.</span> <span class="nav-text">返回值</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Follower%E7%9A%84%E5%A4%84%E7%90%86%E9%80%BB%E8%BE%91"><span class="nav-number">1.2.3.</span> <span class="nav-text">Follower的处理逻辑</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#RequestVote-RPC"><span class="nav-number">1.3.</span> <span class="nav-text">RequestVote RPC</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%8F%82%E6%95%B0-1"><span class="nav-number">1.3.1.</span> <span class="nav-text">参数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%BF%94%E5%9B%9E%E5%80%BC-1"><span class="nav-number">1.3.2.</span> <span class="nav-text">返回值</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#follower%E5%A4%84%E7%90%86%E9%80%BB%E8%BE%91"><span class="nav-number">1.3.3.</span> <span class="nav-text">follower处理逻辑</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Server-Rules"><span class="nav-number">1.4.</span> <span class="nav-text">Server Rules</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Follower"><span class="nav-number">1.4.1.</span> <span class="nav-text">Follower</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Candidate"><span class="nav-number">1.4.2.</span> <span class="nav-text">Candidate</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Leader"><span class="nav-number">1.4.3.</span> <span class="nav-text">Leader</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%AE%9E%E9%AA%8C"><span class="nav-number">2.</span> <span class="nav-text">实验</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Lab2A"><span class="nav-number">2.1.</span> <span class="nav-text">Lab2A</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%B1%BB%E6%9E%B6%E6%9E%84"><span class="nav-number">2.1.1.</span> <span class="nav-text">类架构</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BA%BF%E7%A8%8B%E6%A2%B3%E7%90%86"><span class="nav-number">2.1.2.</span> <span class="nav-text">线程梳理</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%89%80%E6%9C%89server%EF%BC%8C%E5%B0%A4%E5%85%B6%E6%98%AFFollower"><span class="nav-number">2.1.2.1.</span> <span class="nav-text">所有server，尤其是Follower</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Leader-1"><span class="nav-number">2.1.2.2.</span> <span class="nav-text">Leader</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Candidate-1"><span class="nav-number">2.1.2.3.</span> <span class="nav-text">Candidate</span></a></li></ol></li></ol></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">John Doe</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/oliviablog.github.io/archives/">
+        
+          <span class="site-state-item-count">12</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/oliviablog.github.io/tags/">
+          
+        <span class="site-state-item-count">17</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">John Doe</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/oliviablog.github.io/lib/anime.min.js"></script>
+  <script src="/oliviablog.github.io/lib/velocity/velocity.min.js"></script>
+  <script src="/oliviablog.github.io/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/oliviablog.github.io/js/utils.js"></script>
+
+<script src="/oliviablog.github.io/js/motion.js"></script>
+
+
+<script src="/oliviablog.github.io/js/schemes/muse.js"></script>
+
+
+<script src="/oliviablog.github.io/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+<script>
+if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8/dist/mermaid.min.js', () => {
+    mermaid.initialize({
+      theme    : 'forest',
+      logLevel : 3,
+      flowchart: { curve     : 'linear' },
+      gantt    : { axisFormat: '%m/%d/%Y' },
+      sequence : { actorMargin: 50 }
+    });
+  }, window.mermaid);
+}
+</script>
+
+
+  
+
+  
+
+</body>
+</html>
