@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 6.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/oliviablog.github.io/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/oliviablog.github.io/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/oliviablog.github.io/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/oliviablog.github.io/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/oliviablog.github.io/css/main.css">
+
+
+<link rel="stylesheet" href="/oliviablog.github.io/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"olive-2019.github.io","root":"/oliviablog.github.io/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="如题">
+<meta property="og:type" content="article">
+<meta property="og:title" content="小白也能看懂的Raft协议">
+<meta property="og:url" content="https://olive-2019.github.io/oliviablog.github.io/2023/11/30/%E5%B0%8F%E7%99%BD%E4%B9%9F%E8%83%BD%E7%9C%8B%E6%87%82%E7%9A%84Raft%E5%8D%8F%E8%AE%AE/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="如题">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2023-11-30T14:49:41.000Z">
+<meta property="article:modified_time" content="2023-12-01T09:23:28.486Z">
+<meta property="article:author" content="John Doe">
+<meta property="article:tag" content="容错">
+<meta property="article:tag" content="Raft">
+<meta property="article:tag" content="分布式">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="https://olive-2019.github.io/oliviablog.github.io/2023/11/30/%E5%B0%8F%E7%99%BD%E4%B9%9F%E8%83%BD%E7%9C%8B%E6%87%82%E7%9A%84Raft%E5%8D%8F%E8%AE%AE/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>小白也能看懂的Raft协议 | Hexo</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/oliviablog.github.io/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Hexo</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/oliviablog.github.io/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/oliviablog.github.io/about/" rel="section"><i class="fa fa-user fa-fw"></i>About</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/oliviablog.github.io/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/oliviablog.github.io/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://olive-2019.github.io/oliviablog.github.io/2023/11/30/%E5%B0%8F%E7%99%BD%E4%B9%9F%E8%83%BD%E7%9C%8B%E6%87%82%E7%9A%84Raft%E5%8D%8F%E8%AE%AE/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/oliviablog.github.io/images/avatar.gif">
+      <meta itemprop="name" content="John Doe">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Hexo">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          小白也能看懂的Raft协议
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2023-11-30 22:49:41" itemprop="dateCreated datePublished" datetime="2023-11-30T22:49:41+08:00">2023-11-30</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2023-12-01 17:23:28" itemprop="dateModified" datetime="2023-12-01T17:23:28+08:00">2023-12-01</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>如题</p>
+<span id="more"></span>
+
+<h1 id="Raft是什么？"><a href="#Raft是什么？" class="headerlink" title="Raft是什么？"></a>Raft是什么？</h1><p>专业术语(<del>高大上的话</del>)：分布式共识协议，确保在分布式系统中各个节点之间达成一致的数据状态。</p>
+<p>大白话：让所有服务器（节点）统一状态</p>
+<h1 id="大概是怎么做到的？"><a href="#大概是怎么做到的？" class="headerlink" title="大概是怎么做到的？"></a>大概是怎么做到的？</h1><p>核心思想：Raft算法通过<strong>选举Leader</strong>，让Leader确保系统中的所有节点以一致的顺序接收和<strong>应用</strong>相同的指令序列，从而保证数据一致性和可靠性。</p>
+<p>Raft将共识问题分成两个子问题：</p>
+<ol>
+<li>Leader选举</li>
+<li>日志同步</li>
+</ol>
+<p>此外，我们还有两个重要的假设：</p>
+<ol>
+<li><p>term： 系统时间片。提供follower超时选举、candidate重新选举、防止brain split等功能。每次开启选举时+1（包括Follower超时选举和Candidate重新选举）</p>
+<blockquote>
+<p>brain split：脑裂，即指系统中同时出现多个leader的情况</p>
+</blockquote>
+</li>
+<li><p>RPC：所有的数据都是从Leader&#x2F;Candidate流向Follower的，Leader往外发的<strong>AppendEntries</strong>提供日志复制和心跳功能，Candidate往外发的<strong>RequestVote</strong>提供请求选票功能</p>
+</li>
+</ol>
+<h2 id="选举"><a href="#选举" class="headerlink" title="选举"></a>选举</h2><h3 id="系统状态"><a href="#系统状态" class="headerlink" title="系统状态"></a>系统状态</h3><p>Raft系统中定义了三个不同的状态，每个节点仅为其中一个状态。</p>
+<ol>
+<li>Follower：完全被动的接收来自其他两种server的指令</li>
+<li>Candidate：选举过程中的中间状态</li>
+<li>Leader：保证系统中其他节点和本节点的同步</li>
+</ol>
+<pre class="mermaid">graph TD
+    A[Follower] -->|开始选举| B(Candidate)
+    B --> |重新选举|B
+    B --> |获得大多数选票| C(Leader)
+    C --> |其他server有更大的term编号| A
+    B --> |当前系统有leader了or其他server有更大的term编号| A</pre>
+
+<h3 id="选举流程："><a href="#选举流程：" class="headerlink" title="选举流程："></a>选举流程：</h3><ol>
+<li><strong>超时选举</strong>：节点进入系统是follower状态，如果一段随机时间内都没有收到Leader发送的AppendEntries，则term自增，超时选举成为Candidate。</li>
+<li><strong>候选</strong>：Candidate选举过程中若收到过半选票则成为Leader，若收到所有回应，但选票没过半，则term自增，重新选举<br>投票原则：每个term只投一次，只投给term比自己大且日志比自己新的节点（依次比较term和index）</li>
+<li><strong>Leader的初始化工作</strong>：Leader的初始化操作包括：发送心跳维护地位，初始化next和applied，前者为日志条数，后者为-1</li>
+</ol>
+<blockquote>
+<p>与论文不同，本系统日志index从0开始计数</p>
+</blockquote>
+<ol start="4">
+<li><strong>状态回退与更新</strong>：Candidate和Leader运行过程中若收到term比自己大的指令，则成为Follower，并更新term；Follower若收到term比自己大的指令，则只更新term</li>
+</ol>
+<h2 id="日志同步"><a href="#日志同步" class="headerlink" title="日志同步"></a>日志同步</h2><h3 id="日志内容"><a href="#日志内容" class="headerlink" title="日志内容"></a>日志内容</h3><ol>
+<li>index：每个日志条目都有一个唯一的索引值，用于标识该条目在日志中的位置。</li>
+<li>term：任期号，表示该条目所处的任期（Leader接收该命令的任期）</li>
+<li>command：需要在状态机上执行的指令</li>
+</ol>
+<h3 id="日志复制"><a href="#日志复制" class="headerlink" title="日志复制"></a>日志复制</h3><p>核心思想是Leader将Follower的日志同步到自己的状态序列。具体做法是Leader利用AppendEntries同步。</p>
+<ol>
+<li>Leader的next数组和applied数组分别记录要向每个follower发送的下一条日志和已经确认的日志。前者用于发送日志，初始化值为日志的末端；后者用于确认commit，初始化值为日志前端。</li>
+<li>Leader发送AppendEntries时，会带上prevIndex和prevTerm，表示上一条日志的index和term。保证Follower能衔接上，若被拒绝，则nextIndex自减再发</li>
+<li>Follower若在自己的日志序列中能找到与prevIndex和prevTerm匹配的日志，则将日志复制到自己的日志序列中，并确认该日志，否则拒绝</li>
+</ol>
+<h1 id="具体实现逻辑"><a href="#具体实现逻辑" class="headerlink" title="具体实现逻辑"></a>具体实现逻辑</h1><h2 id="AppendEntries"><a href="#AppendEntries" class="headerlink" title="AppendEntries"></a>AppendEntries</h2><h3 id="参数"><a href="#参数" class="headerlink" title="参数"></a>参数</h3><ol>
+<li><strong>term</strong>：leader的当前term编号</li>
+<li><strong>leaderId</strong>：leader的id，方便follower将收到的信息转发给leader</li>
+<li><strong>prevLogIndex</strong>：前一个log的index，方便follower确认一致性</li>
+<li><strong>prevLogTerm</strong>：前一个log的term，功能同上</li>
+<li><strong>entries</strong>[]：需要拷贝的多条log entry，心跳信息会是空</li>
+<li><strong>leaderCommit</strong>：leader提交的日志 entry index</li>
+</ol>
+<p>或许可以带上leader自己的log entries，便于找nextIndex</p>
+<h3 id="返回值"><a href="#返回值" class="headerlink" title="返回值"></a>返回值</h3><ol>
+<li><strong>term</strong>：follower所处的term，便于leader确认自己的地位</li>
+<li><strong>success</strong>：用于标志follower是否成功复制log entries。如果prevLogIndex&#x2F;Term不匹配就会返回false</li>
+</ol>
+<h2 id="RequestVote"><a href="#RequestVote" class="headerlink" title="RequestVote"></a>RequestVote</h2><h3 id="参数-1"><a href="#参数-1" class="headerlink" title="参数"></a>参数</h3><ol>
+<li><strong>term</strong>：当前竞选leader的candidate的term</li>
+<li><strong>candidateId</strong>：当前竞选leader的candidate的ID</li>
+<li><strong>lastLogIndex</strong>：最后一条log entry的index</li>
+<li><strong>lastLogTerm</strong>：最后一条log entry的term</li>
+</ol>
+<h3 id="返回值-1"><a href="#返回值-1" class="headerlink" title="返回值"></a>返回值</h3><ol>
+<li><strong>term</strong>：follower的term，如果candidate没有这个大，将会退回到follower状态</li>
+<li><strong>voteGranted</strong>：该follower是否投票给该节点</li>
+</ol>
+<h2 id="状态机属性"><a href="#状态机属性" class="headerlink" title="状态机属性"></a>状态机属性</h2><p>需要持久化的属性</p>
+<ol>
+<li><strong>currentTerm</strong>：server所处的term，也是该server所得知的最新term</li>
+<li><strong>votedFor</strong>：如果是null，则该term内尚未投票，如果是candidateID，则该term中的选举已经投票给了该candidate（不能再投票）。</li>
+<li><strong>log</strong>[]：当前server的所有log entries，每一条log entry包含命令和term编号</li>
+</ol>
+<p>不需要持久化的属性</p>
+<ol>
+<li><strong>commitIndex</strong>：最大的已经commit的log entries index</li>
+<li><strong>lastApplied</strong>：最新加入的log entries index</li>
+</ol>
+<h2 id="Leader"><a href="#Leader" class="headerlink" title="Leader"></a>Leader</h2><h3 id="独有属性"><a href="#独有属性" class="headerlink" title="独有属性"></a>独有属性</h3><ul>
+<li><strong>nextIndex</strong>[]：需要发给每一个follower的下一条log entry（初始化值是leader的最后一个log entry的下一个值）</li>
+<li><strong>matchIndex</strong>[]：每个follower当前匹配到哪一条log entry（初始化值为0）</li>
+</ul>
+<h3 id="主线程"><a href="#主线程" class="headerlink" title="主线程"></a>主线程</h3><ol>
+<li>初始化nextIndex和appliedIndex</li>
+<li>发送心跳</li>
+<li>检测follower返回值并发送新的心跳&#x2F;日志</li>
+</ol>
+<h3 id="接收AppendEntries线程"><a href="#接收AppendEntries线程" class="headerlink" title="接收AppendEntries线程"></a>接收AppendEntries线程</h3><ol>
+<li>检测term，若比自己大则退回到follower状态，term置为该term，并以follower状态处理该AppendEntries</li>
+<li>拒绝该AE，发送自己的term</li>
+</ol>
+<h3 id="接收RequestVote线程"><a href="#接收RequestVote线程" class="headerlink" title="接收RequestVote线程"></a>接收RequestVote线程</h3><ol>
+<li>检测term，若比自己大则退回到follower状态，term置为该term，并以follower状态处理该RV</li>
+<li>拒绝该RV，发送自己的term</li>
+</ol>
+<h2 id="Candidate"><a href="#Candidate" class="headerlink" title="Candidate"></a>Candidate</h2><h3 id="主线程-1"><a href="#主线程-1" class="headerlink" title="主线程"></a>主线程</h3><ol>
+<li>给所有其他节点发送RequestVote</li>
+<li>检测follower返回值</li>
+<li>检测是否获得半数选票</li>
+<li>获得半数选票则成为Leader，否则term自增重启选举</li>
+</ol>
+<h3 id="接收AppendEntries-RequestVote线程"><a href="#接收AppendEntries-RequestVote线程" class="headerlink" title="接收AppendEntries&#x2F;RequestVote线程"></a>接收AppendEntries&#x2F;RequestVote线程</h3><p>和Leader相同</p>
+<h2 id="Follower"><a href="#Follower" class="headerlink" title="Follower"></a>Follower</h2><h3 id="接收AppendEntries线程-1"><a href="#接收AppendEntries线程-1" class="headerlink" title="接收AppendEntries线程"></a>接收AppendEntries线程</h3><ol>
+<li>检测term，若比自己小则拒绝并返回自己的term</li>
+<li>检测prevIndex和prevTerm，若不存在则返回拒绝信息</li>
+<li>从prevIndex开始复制日志，并确认</li>
+</ol>
+<h3 id="接收RequestVote线程-1"><a href="#接收RequestVote线程-1" class="headerlink" title="接收RequestVote线程"></a>接收RequestVote线程</h3><ol>
+<li>检测term，若比自己小则拒绝并返回自己的term</li>
+<li>检测日志，若比自己更旧，则返回拒绝信息</li>
+<li>如果没有投过票或给这个节点投票了，则返回同意信息并更新voteFor，否则拒绝</li>
+</ol>
+<h1 id="Raft优化"><a href="#Raft优化" class="headerlink" title="Raft优化"></a>Raft优化</h1><h2 id="读优化"><a href="#读优化" class="headerlink" title="读优化"></a>读优化</h2><h3 id="read-index"><a href="#read-index" class="headerlink" title="read index"></a>read index</h3><p>read index所解决的核心问题有两个：</p>
+<ol>
+<li>leader是否有效</li>
+<li>前面的logEntry是否提交</li>
+</ol>
+<p>具体方式为：</p>
+<ol>
+<li>将当前未commit的logEntry提交确保系统状态已更新</li>
+<li>提交后发起一轮心跳确保当前leader是唯一有效的</li>
+<li>回应client的读操作</li>
+</ol>
+<p>对比原始raft算法优点：</p>
+<ol>
+<li>不必将读操作变成logEntry复制到集群中的所有节点上和等待commit，节约了至少一次commit的时间</li>
+</ol>
+<h3 id="lease-read"><a href="#lease-read" class="headerlink" title="lease read"></a>lease read</h3><p>核心是leader<strong>计算最小独立掌权时间</strong>。leader维护一个租约机制，当租约未过期时，可以在commit了所有entries以后直接返回，不必发心跳。<br>租约机制通过选举超时时限和发布心跳时间计算最小独立掌权时间，即$leaseTime &#x3D; start+timeout$。<br>由于不同CPU的时钟会有误差，故使用$leaseTime &#x3D; start+\frac{timeout}{clock\ drift\ bound}$，但是实际上这个算法仍然存在问题，故不会被作为默认算法。</p>
+<p>对比原始read index优点：<br>不用心跳</p>
+<h2 id="选举优化"><a href="#选举优化" class="headerlink" title="选举优化"></a>选举优化</h2><p>raft选举过程中仍存在多个问题</p>
+<h3 id="prevote"><a href="#prevote" class="headerlink" title="prevote"></a>prevote</h3><p>解决的核心问题：<br>出现网络分区时，小分区里的节点无法选举成功会不断尝试，并增加term。当网络分区恢复时，小分区节点和leader的通讯会导致leader卸任。但是leader不应该卸任。</p>
+<p>解决方案：<br>在真正的选举之前进行一轮预选举，如果能成功再正式发起选举，否则放弃本轮选举，等待下一个election timeout</p>
+<h3 id="priority-election"><a href="#priority-election" class="headerlink" title="priority election"></a>priority election</h3><p>解决的核心问题：<br>raft不支持优先级选举</p>
+<p>解决方案:<br>引入节点优先级和全局优先级，选举前比一比</p>
+<p>具体方案：</p>
+<ol>
+<li>每次心跳都更新全局最高优先级</li>
+<li>超时时比较节点优先级和全局最高优先级，若节点优先级&gt;&#x3D;全局最高优先级，则开启选举</li>
+<li>若选举超时仍未选出leader，则$全局最高优先级 &#x3D; max(1, 全局最高优先级 * 0.8)$</li>
+</ol>
+<p>存在的问题：<br>当最高优先级不存在时，选举时可能会浪费一轮选举时间</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/oliviablog.github.io/tags/%E5%AE%B9%E9%94%99/" rel="tag"># 容错</a>
+              <a href="/oliviablog.github.io/tags/Raft/" rel="tag"># Raft</a>
+              <a href="/oliviablog.github.io/tags/%E5%88%86%E5%B8%83%E5%BC%8F/" rel="tag"># 分布式</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/oliviablog.github.io/2023/11/30/%E6%95%B0%E6%8D%AE%E5%A4%84%E7%90%86%E5%BC%95%E6%93%8E/" rel="prev" title="数据处理引擎">
+      <i class="fa fa-chevron-left"></i> 数据处理引擎
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Raft%E6%98%AF%E4%BB%80%E4%B9%88%EF%BC%9F"><span class="nav-number">1.</span> <span class="nav-text">Raft是什么？</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%A4%A7%E6%A6%82%E6%98%AF%E6%80%8E%E4%B9%88%E5%81%9A%E5%88%B0%E7%9A%84%EF%BC%9F"><span class="nav-number">2.</span> <span class="nav-text">大概是怎么做到的？</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%80%89%E4%B8%BE"><span class="nav-number">2.1.</span> <span class="nav-text">选举</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%B3%BB%E7%BB%9F%E7%8A%B6%E6%80%81"><span class="nav-number">2.1.1.</span> <span class="nav-text">系统状态</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%80%89%E4%B8%BE%E6%B5%81%E7%A8%8B%EF%BC%9A"><span class="nav-number">2.1.2.</span> <span class="nav-text">选举流程：</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%97%A5%E5%BF%97%E5%90%8C%E6%AD%A5"><span class="nav-number">2.2.</span> <span class="nav-text">日志同步</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%97%A5%E5%BF%97%E5%86%85%E5%AE%B9"><span class="nav-number">2.2.1.</span> <span class="nav-text">日志内容</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%97%A5%E5%BF%97%E5%A4%8D%E5%88%B6"><span class="nav-number">2.2.2.</span> <span class="nav-text">日志复制</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%85%B7%E4%BD%93%E5%AE%9E%E7%8E%B0%E9%80%BB%E8%BE%91"><span class="nav-number">3.</span> <span class="nav-text">具体实现逻辑</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#AppendEntries"><span class="nav-number">3.1.</span> <span class="nav-text">AppendEntries</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%8F%82%E6%95%B0"><span class="nav-number">3.1.1.</span> <span class="nav-text">参数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%BF%94%E5%9B%9E%E5%80%BC"><span class="nav-number">3.1.2.</span> <span class="nav-text">返回值</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#RequestVote"><span class="nav-number">3.2.</span> <span class="nav-text">RequestVote</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%8F%82%E6%95%B0-1"><span class="nav-number">3.2.1.</span> <span class="nav-text">参数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%BF%94%E5%9B%9E%E5%80%BC-1"><span class="nav-number">3.2.2.</span> <span class="nav-text">返回值</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%8A%B6%E6%80%81%E6%9C%BA%E5%B1%9E%E6%80%A7"><span class="nav-number">3.3.</span> <span class="nav-text">状态机属性</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Leader"><span class="nav-number">3.4.</span> <span class="nav-text">Leader</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%8B%AC%E6%9C%89%E5%B1%9E%E6%80%A7"><span class="nav-number">3.4.1.</span> <span class="nav-text">独有属性</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%BB%E7%BA%BF%E7%A8%8B"><span class="nav-number">3.4.2.</span> <span class="nav-text">主线程</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%8E%A5%E6%94%B6AppendEntries%E7%BA%BF%E7%A8%8B"><span class="nav-number">3.4.3.</span> <span class="nav-text">接收AppendEntries线程</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%8E%A5%E6%94%B6RequestVote%E7%BA%BF%E7%A8%8B"><span class="nav-number">3.4.4.</span> <span class="nav-text">接收RequestVote线程</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Candidate"><span class="nav-number">3.5.</span> <span class="nav-text">Candidate</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%BB%E7%BA%BF%E7%A8%8B-1"><span class="nav-number">3.5.1.</span> <span class="nav-text">主线程</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%8E%A5%E6%94%B6AppendEntries-RequestVote%E7%BA%BF%E7%A8%8B"><span class="nav-number">3.5.2.</span> <span class="nav-text">接收AppendEntries&#x2F;RequestVote线程</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Follower"><span class="nav-number">3.6.</span> <span class="nav-text">Follower</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%8E%A5%E6%94%B6AppendEntries%E7%BA%BF%E7%A8%8B-1"><span class="nav-number">3.6.1.</span> <span class="nav-text">接收AppendEntries线程</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%8E%A5%E6%94%B6RequestVote%E7%BA%BF%E7%A8%8B-1"><span class="nav-number">3.6.2.</span> <span class="nav-text">接收RequestVote线程</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Raft%E4%BC%98%E5%8C%96"><span class="nav-number">4.</span> <span class="nav-text">Raft优化</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%AF%BB%E4%BC%98%E5%8C%96"><span class="nav-number">4.1.</span> <span class="nav-text">读优化</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#read-index"><span class="nav-number">4.1.1.</span> <span class="nav-text">read index</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#lease-read"><span class="nav-number">4.1.2.</span> <span class="nav-text">lease read</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%80%89%E4%B8%BE%E4%BC%98%E5%8C%96"><span class="nav-number">4.2.</span> <span class="nav-text">选举优化</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#prevote"><span class="nav-number">4.2.1.</span> <span class="nav-text">prevote</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#priority-election"><span class="nav-number">4.2.2.</span> <span class="nav-text">priority election</span></a></li></ol></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">John Doe</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/oliviablog.github.io/archives/">
+        
+          <span class="site-state-item-count">24</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/oliviablog.github.io/tags/">
+          
+        <span class="site-state-item-count">25</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">John Doe</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/oliviablog.github.io/lib/anime.min.js"></script>
+  <script src="/oliviablog.github.io/lib/velocity/velocity.min.js"></script>
+  <script src="/oliviablog.github.io/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/oliviablog.github.io/js/utils.js"></script>
+
+<script src="/oliviablog.github.io/js/motion.js"></script>
+
+
+<script src="/oliviablog.github.io/js/schemes/muse.js"></script>
+
+
+<script src="/oliviablog.github.io/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+<script>
+if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8/dist/mermaid.min.js', () => {
+    mermaid.initialize({
+      theme    : 'forest',
+      logLevel : 3,
+      flowchart: { curve     : 'linear' },
+      gantt    : { axisFormat: '%m/%d/%Y' },
+      sequence : { actorMargin: 50 }
+    });
+  }, window.mermaid);
+}
+</script>
+
+
+  
+
+  
+
+</body>
+</html>

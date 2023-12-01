@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 6.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/oliviablog.github.io/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/oliviablog.github.io/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/oliviablog.github.io/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/oliviablog.github.io/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/oliviablog.github.io/css/main.css">
+
+
+<link rel="stylesheet" href="/oliviablog.github.io/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"olive-2019.github.io","root":"/oliviablog.github.io/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="zookeeper">
+<meta property="og:type" content="article">
+<meta property="og:title" content="DS-Lecture10:zookeeper">
+<meta property="og:url" content="https://olive-2019.github.io/oliviablog.github.io/2023/11/04/DS-Lecture10-zookeeper/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="zookeeper">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2023-11-04T02:35:46.000Z">
+<meta property="article:modified_time" content="2023-11-07T07:19:37.919Z">
+<meta property="article:author" content="John Doe">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="https://olive-2019.github.io/oliviablog.github.io/2023/11/04/DS-Lecture10-zookeeper/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>DS-Lecture10:zookeeper | Hexo</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/oliviablog.github.io/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Hexo</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/oliviablog.github.io/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/oliviablog.github.io/about/" rel="section"><i class="fa fa-user fa-fw"></i>About</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/oliviablog.github.io/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/oliviablog.github.io/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://olive-2019.github.io/oliviablog.github.io/2023/11/04/DS-Lecture10-zookeeper/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/oliviablog.github.io/images/avatar.gif">
+      <meta itemprop="name" content="John Doe">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Hexo">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          DS-Lecture10:zookeeper
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2023-11-04 10:35:46" itemprop="dateCreated datePublished" datetime="2023-11-04T10:35:46+08:00">2023-11-04</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2023-11-07 15:19:37" itemprop="dateModified" datetime="2023-11-07T15:19:37+08:00">2023-11-07</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>zookeeper</p>
+<span id="more"></span>
+<h1 id="论文"><a href="#论文" class="headerlink" title="论文"></a>论文</h1><h2 id="分布式协同"><a href="#分布式协同" class="headerlink" title="分布式协同"></a>分布式协同</h2><p>需要的内容：配置信息、不同节点的关系（如选举）、锁机制<br>实现方式：</p>
+<ol>
+<li>实现特定原语满足不同需求</li>
+<li>提供高级原语，可在高级原语基础上再构造低级原语</li>
+</ol>
+<p>zookeeper走的第二条路线，提供一些API允许用户构造自己的原语，但是zookeeper不提供阻塞原语（锁可能导致差进程拖慢好进程）。<br>为了实现系统同步，zookeeper提供了wait-free的数据对象，wait-free数据对象是分层结构的。同时需要保证客户端访问FIFO和操作的linearizability。</p>
+<h2 id="zookeeper-数据模型"><a href="#zookeeper-数据模型" class="headerlink" title="zookeeper 数据模型"></a>zookeeper 数据模型</h2><p>zookeeper提供的数据对象称为znode。znode仿照inode，提供<strong>层次化</strong>的访问方式。与inode不同</p>
+<ol>
+<li>znode存储在内存中</li>
+<li>znode非叶结点也可以存储数据</li>
+<li>znode存储的是元数据</li>
+</ol>
+<h3 id="节点类型"><a href="#节点类型" class="headerlink" title="节点类型"></a>节点类型</h3><ul>
+<li>普通节点：客户端显式创建删除的节点，会被持久化</li>
+<li>临时节点：仅在会话周期内存在，不会被持久化</li>
+</ul>
+<p>顺序标志：允许客户端设置的，子节点的顺序标志不小于父节点</p>
+<h3 id="watch机制"><a href="#watch机制" class="headerlink" title="watch机制"></a>watch机制</h3><p>功能：当数据发生改变时，主动向客户端推送更改消息</p>
+<p>特性：</p>
+<ul>
+<li>一次性：仅在会话中有效，且仅推送一次</li>
+</ul>
+<h3 id="会话"><a href="#会话" class="headerlink" title="会话"></a>会话</h3><p>客户端和zk连接后启动会话。客户端显式关闭或zk认定client存在故障时会话结束。</p>
+<ol>
+<li>超时时间。若超过该时间没有收到client的会话消息，则认定该client存在故障。</li>
+<li>会话内，客户端观察到的系统状态与其提交顺序完全一致</li>
+<li>zk节点发生故障时，客户端会被无缝对接到另一个节点上（更换过程对客户端透明）</li>
+</ol>
+<h2 id="zookeeper-API"><a href="#zookeeper-API" class="headerlink" title="zookeeper API"></a>zookeeper API</h2><p>create(path, data, flags)：创建一个路径为 path 的 znode，并将数据 data[] 保存其中，然后返回新建的 znode 的名称。flags 用于指定 znode 的类型：常规节点，临时节点，以及设置顺序标记。<br>delete(path, version)：如果指定路径 path 下的 znode 的版本号和 version 匹配，则删除该节点。<br>exists(path, watch)：如果指定路径 path 下的 znode 存在则返回 true，否则返回 false。如果 watch 为 true，则当 znode 的数据发生变化时，客户端会收到通知。<br>getData(path, watch)：获取指定路径 path 下的 znode 的数据和元数据，例如版本信息。watch 的功能和 exists() 中的 watch 的功能一致，只不过如果当前节点不存在，则 watch 不会生效。<br>setData(path, data, version)：如果指定路径 path 下的 znode 的版本号和 version 匹配，则将数据 data[] 写入到该节点。<br>getChildren(path, watch)：返回指定路径 path 下的 znode 的子节点的名称。<br>sync(path)：阻塞等待直到在操作开始时所有进行中的更新操作都同步到了当前客户端所连接的服务端。path 参数当前未使用。</p>
+<h3 id="特点"><a href="#特点" class="headerlink" title="特点"></a>特点</h3><ul>
+<li>异步：znode访问支持异步，保证异步回调函数的执行顺序与提交异步请求的顺序一致</li>
+<li>无状态访问：不使用handle对znode进行访问，每次传输所有需要的数据</li>
+<li>版本校验：允许客户端传入版本号，若不一致则拒绝请求</li>
+</ul>
+<h3 id="保证"><a href="#保证" class="headerlink" title="保证"></a>保证</h3><ul>
+<li><strong>线性化写</strong>：写操作是原子性的、立即可见的，当写操作完成后，整个系统都可见</li>
+<li><strong>客户端FIFO请求顺序</strong>：如果一个客户端按照顺序发送了多个请求，Zookeeper将按照相同的顺序将这些请求交付给服务端处理，而不会出现乱序。这个保证确保了客户端请求的有序性，使得客户端能够依赖于请求的顺序性进行正确的操作。</li>
+</ul>
+<p>案例：leader-follower集群中，leader更改配置需要保证</p>
+<ol>
+<li>更改配置信息的过程中，配置信息不会被读取</li>
+<li>leader在修改配置信息的过程中挂掉，改了一半的配置信息也不会被读取</li>
+</ol>
+<p>方法：配置信息可用时，存在readyNode，leader修改配置信息时删除readyNode，并在修改后建立readyNode。虽然多个修改操作是异步发布的，但由于FIFO的保证，ready节点重新建立之前，修改操作必然完成。</p>
+<p>另外两个小的保证：</p>
+<ul>
+<li>可用性：半数以上服务器可用，集群可用</li>
+<li>持久性：只要成功写，该状态改变就会被持久化</li>
+</ul>
+<h3 id="实现原语例子"><a href="#实现原语例子" class="headerlink" title="实现原语例子"></a>实现原语例子</h3><ol>
+<li>配置管理：简单的应用znode及其watch机制，保证可以获取最新配置</li>
+<li>汇合：用一个znode作为标志，多个worker进程建立时该znode建立，并监控该znode，该znode更新&#x2F;被删除时，worker进程将杀死自己</li>
+<li>成员关系：在一个znode下建立子节点，每个member将自己的信息存储在该子节点中，当member挂掉时，该子节点被删除。想要全局信息时，打印所有子节点信息即可</li>
+<li>简单锁：创建znode即获得锁，其他进程监控该znode，会导致惊群效应</li>
+<li>无惊群效应的简单锁：创建znode时加上顺序号，最小者获取锁，其他进程watch比自己小1的znode</li>
+<li>读写锁：写锁即无惊群效应的简单锁，可共享读锁仅检测znode顺序号比自己小的写锁</li>
+<li>双重屏障：其实就是根据子节点数量进行同步</li>
+</ol>
+<h2 id="zookeeper-实现原理"><a href="#zookeeper-实现原理" class="headerlink" title="zookeeper 实现原理"></a>zookeeper 实现原理</h2><p>三个组件，请求处理器(request processor)， 原子广播(atomic broadcast)，复制数据库(replicated database)。</p>
+<ol>
+<li>请求到来时，zkServer将其放入request processor，request processor判断是否需要广播。</li>
+<li>若不需要广播（读请求），则从本地数据库获取数据返回</li>
+<li>若需要广播（写请求），则使用atomic broadcast将变更广播到集群中的所有服务器上</li>
+<li>收到半数follower的ack，则commit事务</li>
+</ol>
+<p>每个zkServer都可以服务客户端，但是写请求会通过zab转发到leader上</p>
+<h3 id="request-processor"><a href="#request-processor" class="headerlink" title="request processor"></a>request processor</h3><p>为了保证重复包也可以正常处理，leader将事务转化为<strong>幂等</strong>事务。<br>例如，将setData转换为setDataTXN，后者将包括修改后的数据，时间戳，修改版本号等信息，保证幂等性</p>
+<h3 id="atomic-broadcast-Zab"><a href="#atomic-broadcast-Zab" class="headerlink" title="atomic broadcast(Zab)"></a>atomic broadcast(Zab)</h3><ul>
+<li><p>请求流水线化，对次序的要求（由TCP实现）比常规原子广播更强。</p>
+</li>
+<li><p>2PC流程</p>
+</li>
+</ul>
+<ol>
+<li>发送</li>
+<li>等半数以上服务器ack</li>
+<li>commit</li>
+</ol>
+<h3 id="replicated-database"><a href="#replicated-database" class="headerlink" title="replicated database"></a>replicated database</h3><p>定期快照，从上次快照后开始replay日志。<br>zk采用模糊快照，生成快照时不锁定zk树，所以生成快照过程中也可能被修改。但是由于事务幂等，只要按序replay就可以达到原有状态</p>
+<h2 id="zookeeper和client的交互"><a href="#zookeeper和client的交互" class="headerlink" title="zookeeper和client的交互"></a>zookeeper和client的交互</h2><ul>
+<li>线性化写请求</li>
+<li>本地化：只有与client相连的zkServer响应client的watch，同时client的读请求是本地zkServer响应的，故速率较高。读请求会有一个zxid，标记该服务器能看到的最后一个事务。</li>
+<li>可用性：读操作可能返回过时的值，可以加上sync，根据FIFO，可以保证读到最新的值</li>
+<li>持久性：如果zkServer的数据赶不上client的zxid，则不会建立会话，而是给该client找更新的zkServer</li>
+<li>超时：zkServer一段时间内都没有收到client的请求即认为该client挂掉，故低活跃时期的client仍要给zkServer发心跳信息。client如果没有收到zkServer的回复，超时则切换到新服务器上。</li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/oliviablog.github.io/2023/11/02/%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93ClickHouse/" rel="prev" title="数据仓库ClickHouse">
+      <i class="fa fa-chevron-left"></i> 数据仓库ClickHouse
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/oliviablog.github.io/2023/11/06/%E5%88%86%E5%B8%83%E5%BC%8F%E7%90%86%E8%AE%BA/" rel="next" title="分布式理论">
+      分布式理论 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E8%AE%BA%E6%96%87"><span class="nav-number">1.</span> <span class="nav-text">论文</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%88%86%E5%B8%83%E5%BC%8F%E5%8D%8F%E5%90%8C"><span class="nav-number">1.1.</span> <span class="nav-text">分布式协同</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#zookeeper-%E6%95%B0%E6%8D%AE%E6%A8%A1%E5%9E%8B"><span class="nav-number">1.2.</span> <span class="nav-text">zookeeper 数据模型</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%8A%82%E7%82%B9%E7%B1%BB%E5%9E%8B"><span class="nav-number">1.2.1.</span> <span class="nav-text">节点类型</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#watch%E6%9C%BA%E5%88%B6"><span class="nav-number">1.2.2.</span> <span class="nav-text">watch机制</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BC%9A%E8%AF%9D"><span class="nav-number">1.2.3.</span> <span class="nav-text">会话</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#zookeeper-API"><span class="nav-number">1.3.</span> <span class="nav-text">zookeeper API</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%89%B9%E7%82%B9"><span class="nav-number">1.3.1.</span> <span class="nav-text">特点</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BF%9D%E8%AF%81"><span class="nav-number">1.3.2.</span> <span class="nav-text">保证</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%9E%E7%8E%B0%E5%8E%9F%E8%AF%AD%E4%BE%8B%E5%AD%90"><span class="nav-number">1.3.3.</span> <span class="nav-text">实现原语例子</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#zookeeper-%E5%AE%9E%E7%8E%B0%E5%8E%9F%E7%90%86"><span class="nav-number">1.4.</span> <span class="nav-text">zookeeper 实现原理</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#request-processor"><span class="nav-number">1.4.1.</span> <span class="nav-text">request processor</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#atomic-broadcast-Zab"><span class="nav-number">1.4.2.</span> <span class="nav-text">atomic broadcast(Zab)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#replicated-database"><span class="nav-number">1.4.3.</span> <span class="nav-text">replicated database</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#zookeeper%E5%92%8Cclient%E7%9A%84%E4%BA%A4%E4%BA%92"><span class="nav-number">1.5.</span> <span class="nav-text">zookeeper和client的交互</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">John Doe</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/oliviablog.github.io/archives/">
+        
+          <span class="site-state-item-count">24</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/oliviablog.github.io/tags/">
+          
+        <span class="site-state-item-count">25</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">John Doe</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/oliviablog.github.io/lib/anime.min.js"></script>
+  <script src="/oliviablog.github.io/lib/velocity/velocity.min.js"></script>
+  <script src="/oliviablog.github.io/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/oliviablog.github.io/js/utils.js"></script>
+
+<script src="/oliviablog.github.io/js/motion.js"></script>
+
+
+<script src="/oliviablog.github.io/js/schemes/muse.js"></script>
+
+
+<script src="/oliviablog.github.io/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+<script>
+if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8/dist/mermaid.min.js', () => {
+    mermaid.initialize({
+      theme    : 'forest',
+      logLevel : 3,
+      flowchart: { curve     : 'linear' },
+      gantt    : { axisFormat: '%m/%d/%Y' },
+      sequence : { actorMargin: 50 }
+    });
+  }, window.mermaid);
+}
+</script>
+
+
+  
+
+  
+
+</body>
+</html>

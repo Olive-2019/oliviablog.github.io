@@ -22,13 +22,13 @@
 
   <meta name="description" content="mit6.824 lab2。lab2 是后续实验的基础，实现一个Raft，lab3实现的KV是在Raft上的。">
 <meta property="og:type" content="article">
-<meta property="og:title" content="DS_Lab2">
+<meta property="og:title" content="DS_Lab2 Raft">
 <meta property="og:url" content="https://olive-2019.github.io/oliviablog.github.io/2023/10/13/DS-Lab2/index.html">
 <meta property="og:site_name" content="Hexo">
 <meta property="og:description" content="mit6.824 lab2。lab2 是后续实验的基础，实现一个Raft，lab3实现的KV是在Raft上的。">
 <meta property="og:locale" content="en_US">
 <meta property="article:published_time" content="2023-10-13T11:28:07.000Z">
-<meta property="article:modified_time" content="2023-10-24T07:43:19.667Z">
+<meta property="article:modified_time" content="2023-12-01T05:39:49.100Z">
 <meta property="article:author" content="John Doe">
 <meta property="article:tag" content="Raft">
 <meta property="article:tag" content="分布式">
@@ -47,7 +47,7 @@
   };
 </script>
 
-  <title>DS_Lab2 | Hexo</title>
+  <title>DS_Lab2 Raft | Hexo</title>
   
 
 
@@ -175,7 +175,7 @@
     </span>
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
-          DS_Lab2
+          DS_Lab2 Raft
         </h1>
 
         <div class="post-meta">
@@ -192,7 +192,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2023-10-24 15:43:19" itemprop="dateModified" datetime="2023-10-24T15:43:19+08:00">2023-10-24</time>
+                <time title="Modified: 2023-12-01 13:39:49" itemprop="dateModified" datetime="2023-12-01T13:39:49+08:00">2023-12-01</time>
               </span>
 
           
@@ -293,7 +293,8 @@
     State <|-- Candidate
     POJO <|-- AppendEntries
     POJO <|-- RequestVote
-    POJO <|-- LogEntry</pre>
+    POJO <|-- LogEntry
+    POJO <|-- Answer</pre>
 
 <h3 id="线程梳理"><a href="#线程梳理" class="headerlink" title="线程梳理"></a>线程梳理</h3><p>Raft运行主线程，不断地切换状态，切换的过程是由上一个状态创建新状态并返回其指针<br>状态的run函数在Raft主线程中运行，会创建多个线程。线程管理逻辑在构造和析构函数中处理</p>
 <ol>
@@ -347,6 +348,47 @@
 <ul>
 <li>计时器守护线程：计时器相当于线程中的守护线程，若该线程结束，其他线程都需要结束（通过在计时器线程结束时调用停止其它线程的函数实现）。故若需要结束当前状态时，可以通过调用结束计时器的函数结束掉所有的线程。</li>
 </ul>
+<h3 id="debug日志"><a href="#debug日志" class="headerlink" title="debug日志"></a>debug日志</h3><h4 id="2023年10月26日"><a href="#2023年10月26日" class="headerlink" title="2023年10月26日"></a>2023年10月26日</h4><p>bug：目前第一次vote无法成功接收<br>debug方向：</p>
+<ol>
+<li>调试一个follower，查看其第一次vote结果是否正常返回</li>
+<li>调试一个candidate，查看其收到的数据是否正常解码（可能性较大）<strong>返回值为空！</strong></li>
+</ol>
+<h4 id="2023年10月27日"><a href="#2023年10月27日" class="headerlink" title="2023年10月27日"></a>2023年10月27日</h4><p>bug：candidate调用requestVote返回值为空字符串<br>debug方向：</p>
+<ol>
+<li>sendRequestVote没有成功：已排除，follower端可以收到信息</li>
+<li>follower端没有返回值：基本排除，follower端能打出返回值</li>
+<li>rpc的问题：感觉这个可能性比较大，但是似乎没有办法debug，而且其他调用没有出问题，为什么只有这个会出问题？<br>解决方案：</li>
+<li>强行跳过返回值为空的future，失败，应该是所有返回值都为空</li>
+<li>原有序列化方式可能存在问题（手动序列化），更换序列化方式（√）</li>
+<li>更改注册方式，使用原始方式（√）</li>
+</ol>
+<h4 id="2023年10月28日"><a href="#2023年10月28日" class="headerlink" title="2023年10月28日"></a>2023年10月28日</h4><p>已修复上述bug</p>
+<h4 id="2023年10月29日"><a href="#2023年10月29日" class="headerlink" title="2023年10月29日"></a>2023年10月29日</h4><p>bug: Leader 调用 sendAppendEntries 无法正常到达follower<br>debug方向：</p>
+<ol>
+<li>发送端没有发送成功，follower端没有收到信息(x)</li>
+<li>发送端发送成功，follower端没有收到信息(x)</li>
+<li>发送端发送成功，follower端收到信息，但是无法解码(x)</li>
+<li>发送端发送成功，但是发送端的信息错误，目前定位到问题在于Leader::checkFollowers中，nextIndex[followerID] &gt;&#x3D; logEntries.size()没有按逻辑执行，初步猜测是logEntries的异步访问导致的，但是加锁无用<br>已修复，发送端编码也有问题，多加一个空格就好（有精力要把接口都改成官方提供的序列化接口）</li>
+</ol>
+<h2 id="Lab2B"><a href="#Lab2B" class="headerlink" title="Lab2B"></a>Lab2B</h2><p>实现AppendEntries，写Lab2A的时候已经完成了，只需要加上client端发送start和接收applyMsg的逻辑</p>
+<h2 id="Lab2C"><a href="#Lab2C" class="headerlink" title="Lab2C"></a>Lab2C</h2><p>持久化，每隔一段时间将需要持久化的状态写一次磁盘</p>
+<h2 id="Lab2D"><a href="#Lab2D" class="headerlink" title="Lab2D"></a>Lab2D</h2><p>快照，这个需要进一步设计，目前打算借助AppendEntries和ApplyMsg，添加标志位完成。<br>添加标志位<code>bool snapshot</code></p>
+<h3 id="follower处理逻辑-1"><a href="#follower处理逻辑-1" class="headerlink" title="follower处理逻辑"></a>follower处理逻辑</h3><ol>
+<li>收到AppendEntries时，若snapshot为false，则正常处理，并退出该过程</li>
+<li>发送给上层应用的applyMsg里也需要附带状态写磁盘</li>
+<li>删除AppendEntries的commitedIndex以前的命令</li>
+<li>返回true</li>
+</ol>
+<h3 id="leader处理逻辑"><a href="#leader处理逻辑" class="headerlink" title="leader处理逻辑"></a>leader处理逻辑</h3><p>commitedIndex超过命令阈值后需要进行写快照并删除命令，具体操作为</p>
+<ol>
+<li>判断commitedIndex是否大于快照阈值，若小于则退出</li>
+<li>给所有follower发送带有快照请求的AppendEntries（单独开了一个缓冲区，部分复用发appendEntries的代码逻辑，但是对其进行了侵入式改造）</li>
+<li>若半数以上的follower返回成功，则写快照（即给上层应用发送的applyMsg里附加写磁盘命令）并删除命令</li>
+<li>修改nextIndex和matchIndex，同时减去删除的命令数量（即commitedIndex + 1）</li>
+</ol>
+<h3 id="candidate处理逻辑"><a href="#candidate处理逻辑" class="headerlink" title="candidate处理逻辑"></a>candidate处理逻辑</h3><p>同follower，因为candidate收到AppendEntries时说明该进入Follower状态了</p>
+<h2 id="通信级别"><a href="#通信级别" class="headerlink" title="通信级别"></a>通信级别</h2><h3 id="节点间通信"><a href="#节点间通信" class="headerlink" title="节点间通信"></a>节点间通信</h3><p>由于节点间通信失败率较高，各状态机间通信是可信交付，会有验证重发机制</p>
+<h3 id="节点内通信"><a href="#节点内通信" class="headerlink" title="节点内通信"></a>节点内通信</h3><p>节点内通信失败率低，状态机和上层应用间通信是不可信交付，不需要重发机制</p>
 
     </div>
 
@@ -431,7 +473,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E8%AE%BA%E6%96%87%E4%B8%AD%E7%BB%99%E5%87%BA%E7%9A%84%E7%AE%97%E6%B3%95"><span class="nav-number">1.</span> <span class="nav-text">论文中给出的算法</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#State%E7%8A%B6%E6%80%81"><span class="nav-number">1.1.</span> <span class="nav-text">State状态</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%9C%80%E8%A6%81%E6%8C%81%E4%B9%85%E5%8C%96%E7%9A%84state%EF%BC%88%E6%89%80%E6%9C%89server%EF%BC%89"><span class="nav-number">1.1.1.</span> <span class="nav-text">需要持久化的state（所有server）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%98%93%E5%A4%B1state%EF%BC%88%E6%89%80%E6%9C%89server%EF%BC%89"><span class="nav-number">1.1.2.</span> <span class="nav-text">易失state（所有server）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%98%93%E5%A4%B1state%EF%BC%88leader%E7%8B%AC%E6%9C%89%EF%BC%89"><span class="nav-number">1.1.3.</span> <span class="nav-text">易失state（leader独有）</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#AppendEntries-RPC"><span class="nav-number">1.2.</span> <span class="nav-text">AppendEntries RPC</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%8F%82%E6%95%B0"><span class="nav-number">1.2.1.</span> <span class="nav-text">参数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%BF%94%E5%9B%9E%E5%80%BC"><span class="nav-number">1.2.2.</span> <span class="nav-text">返回值</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Follower%E7%9A%84%E5%A4%84%E7%90%86%E9%80%BB%E8%BE%91"><span class="nav-number">1.2.3.</span> <span class="nav-text">Follower的处理逻辑</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#RequestVote-RPC"><span class="nav-number">1.3.</span> <span class="nav-text">RequestVote RPC</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%8F%82%E6%95%B0-1"><span class="nav-number">1.3.1.</span> <span class="nav-text">参数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%BF%94%E5%9B%9E%E5%80%BC-1"><span class="nav-number">1.3.2.</span> <span class="nav-text">返回值</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#follower%E5%A4%84%E7%90%86%E9%80%BB%E8%BE%91"><span class="nav-number">1.3.3.</span> <span class="nav-text">follower处理逻辑</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Server-Rules"><span class="nav-number">1.4.</span> <span class="nav-text">Server Rules</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Follower"><span class="nav-number">1.4.1.</span> <span class="nav-text">Follower</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Candidate"><span class="nav-number">1.4.2.</span> <span class="nav-text">Candidate</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Leader"><span class="nav-number">1.4.3.</span> <span class="nav-text">Leader</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%AE%9E%E9%AA%8C"><span class="nav-number">2.</span> <span class="nav-text">实验</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Lab2A"><span class="nav-number">2.1.</span> <span class="nav-text">Lab2A</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%B1%BB%E6%9E%B6%E6%9E%84"><span class="nav-number">2.1.1.</span> <span class="nav-text">类架构</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BA%BF%E7%A8%8B%E6%A2%B3%E7%90%86"><span class="nav-number">2.1.2.</span> <span class="nav-text">线程梳理</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Follower-1"><span class="nav-number">2.1.2.1.</span> <span class="nav-text">Follower</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Leader-1"><span class="nav-number">2.1.2.2.</span> <span class="nav-text">Leader</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Candidate-1"><span class="nav-number">2.1.2.3.</span> <span class="nav-text">Candidate</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BA%BF%E7%A8%8B%E9%97%B4%E5%8D%8F%E5%90%8C"><span class="nav-number">2.1.3.</span> <span class="nav-text">线程间协同</span></a></li></ol></li></ol></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E8%AE%BA%E6%96%87%E4%B8%AD%E7%BB%99%E5%87%BA%E7%9A%84%E7%AE%97%E6%B3%95"><span class="nav-number">1.</span> <span class="nav-text">论文中给出的算法</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#State%E7%8A%B6%E6%80%81"><span class="nav-number">1.1.</span> <span class="nav-text">State状态</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%9C%80%E8%A6%81%E6%8C%81%E4%B9%85%E5%8C%96%E7%9A%84state%EF%BC%88%E6%89%80%E6%9C%89server%EF%BC%89"><span class="nav-number">1.1.1.</span> <span class="nav-text">需要持久化的state（所有server）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%98%93%E5%A4%B1state%EF%BC%88%E6%89%80%E6%9C%89server%EF%BC%89"><span class="nav-number">1.1.2.</span> <span class="nav-text">易失state（所有server）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%98%93%E5%A4%B1state%EF%BC%88leader%E7%8B%AC%E6%9C%89%EF%BC%89"><span class="nav-number">1.1.3.</span> <span class="nav-text">易失state（leader独有）</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#AppendEntries-RPC"><span class="nav-number">1.2.</span> <span class="nav-text">AppendEntries RPC</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%8F%82%E6%95%B0"><span class="nav-number">1.2.1.</span> <span class="nav-text">参数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%BF%94%E5%9B%9E%E5%80%BC"><span class="nav-number">1.2.2.</span> <span class="nav-text">返回值</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Follower%E7%9A%84%E5%A4%84%E7%90%86%E9%80%BB%E8%BE%91"><span class="nav-number">1.2.3.</span> <span class="nav-text">Follower的处理逻辑</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#RequestVote-RPC"><span class="nav-number">1.3.</span> <span class="nav-text">RequestVote RPC</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%8F%82%E6%95%B0-1"><span class="nav-number">1.3.1.</span> <span class="nav-text">参数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%BF%94%E5%9B%9E%E5%80%BC-1"><span class="nav-number">1.3.2.</span> <span class="nav-text">返回值</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#follower%E5%A4%84%E7%90%86%E9%80%BB%E8%BE%91"><span class="nav-number">1.3.3.</span> <span class="nav-text">follower处理逻辑</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Server-Rules"><span class="nav-number">1.4.</span> <span class="nav-text">Server Rules</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Follower"><span class="nav-number">1.4.1.</span> <span class="nav-text">Follower</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Candidate"><span class="nav-number">1.4.2.</span> <span class="nav-text">Candidate</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Leader"><span class="nav-number">1.4.3.</span> <span class="nav-text">Leader</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%AE%9E%E9%AA%8C"><span class="nav-number">2.</span> <span class="nav-text">实验</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Lab2A"><span class="nav-number">2.1.</span> <span class="nav-text">Lab2A</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%B1%BB%E6%9E%B6%E6%9E%84"><span class="nav-number">2.1.1.</span> <span class="nav-text">类架构</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BA%BF%E7%A8%8B%E6%A2%B3%E7%90%86"><span class="nav-number">2.1.2.</span> <span class="nav-text">线程梳理</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Follower-1"><span class="nav-number">2.1.2.1.</span> <span class="nav-text">Follower</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Leader-1"><span class="nav-number">2.1.2.2.</span> <span class="nav-text">Leader</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Candidate-1"><span class="nav-number">2.1.2.3.</span> <span class="nav-text">Candidate</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BA%BF%E7%A8%8B%E9%97%B4%E5%8D%8F%E5%90%8C"><span class="nav-number">2.1.3.</span> <span class="nav-text">线程间协同</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#debug%E6%97%A5%E5%BF%97"><span class="nav-number">2.1.4.</span> <span class="nav-text">debug日志</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#2023%E5%B9%B410%E6%9C%8826%E6%97%A5"><span class="nav-number">2.1.4.1.</span> <span class="nav-text">2023年10月26日</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2023%E5%B9%B410%E6%9C%8827%E6%97%A5"><span class="nav-number">2.1.4.2.</span> <span class="nav-text">2023年10月27日</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2023%E5%B9%B410%E6%9C%8828%E6%97%A5"><span class="nav-number">2.1.4.3.</span> <span class="nav-text">2023年10月28日</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2023%E5%B9%B410%E6%9C%8829%E6%97%A5"><span class="nav-number">2.1.4.4.</span> <span class="nav-text">2023年10月29日</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Lab2B"><span class="nav-number">2.2.</span> <span class="nav-text">Lab2B</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Lab2C"><span class="nav-number">2.3.</span> <span class="nav-text">Lab2C</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Lab2D"><span class="nav-number">2.4.</span> <span class="nav-text">Lab2D</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#follower%E5%A4%84%E7%90%86%E9%80%BB%E8%BE%91-1"><span class="nav-number">2.4.1.</span> <span class="nav-text">follower处理逻辑</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#leader%E5%A4%84%E7%90%86%E9%80%BB%E8%BE%91"><span class="nav-number">2.4.2.</span> <span class="nav-text">leader处理逻辑</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#candidate%E5%A4%84%E7%90%86%E9%80%BB%E8%BE%91"><span class="nav-number">2.4.3.</span> <span class="nav-text">candidate处理逻辑</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%80%9A%E4%BF%A1%E7%BA%A7%E5%88%AB"><span class="nav-number">2.5.</span> <span class="nav-text">通信级别</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%8A%82%E7%82%B9%E9%97%B4%E9%80%9A%E4%BF%A1"><span class="nav-number">2.5.1.</span> <span class="nav-text">节点间通信</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%8A%82%E7%82%B9%E5%86%85%E9%80%9A%E4%BF%A1"><span class="nav-number">2.5.2.</span> <span class="nav-text">节点内通信</span></a></li></ol></li></ol></li></ol></div>
       </div>
       <!--/noindex-->
 
@@ -445,14 +487,14 @@
       <div class="site-state-item site-state-posts">
           <a href="/oliviablog.github.io/archives/">
         
-          <span class="site-state-item-count">13</span>
+          <span class="site-state-item-count">24</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
       <div class="site-state-item site-state-tags">
             <a href="/oliviablog.github.io/tags/">
           
-        <span class="site-state-item-count">18</span>
+        <span class="site-state-item-count">25</span>
         <span class="site-state-item-name">tags</span></a>
       </div>
   </nav>

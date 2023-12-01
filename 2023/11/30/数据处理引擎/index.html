@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 6.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/oliviablog.github.io/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/oliviablog.github.io/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/oliviablog.github.io/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/oliviablog.github.io/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/oliviablog.github.io/css/main.css">
+
+
+<link rel="stylesheet" href="/oliviablog.github.io/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"olive-2019.github.io","root":"/oliviablog.github.io/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="Hadoop、Spark、Flink">
+<meta property="og:type" content="article">
+<meta property="og:title" content="数据处理引擎">
+<meta property="og:url" content="https://olive-2019.github.io/oliviablog.github.io/2023/11/30/%E6%95%B0%E6%8D%AE%E5%A4%84%E7%90%86%E5%BC%95%E6%93%8E/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="Hadoop、Spark、Flink">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2023-11-30T03:12:19.000Z">
+<meta property="article:modified_time" content="2023-12-01T05:39:49.124Z">
+<meta property="article:author" content="John Doe">
+<meta property="article:tag" content="分布式">
+<meta property="article:tag" content="Hadoop">
+<meta property="article:tag" content="Spark">
+<meta property="article:tag" content="Flink">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="https://olive-2019.github.io/oliviablog.github.io/2023/11/30/%E6%95%B0%E6%8D%AE%E5%A4%84%E7%90%86%E5%BC%95%E6%93%8E/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>数据处理引擎 | Hexo</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/oliviablog.github.io/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Hexo</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/oliviablog.github.io/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/oliviablog.github.io/about/" rel="section"><i class="fa fa-user fa-fw"></i>About</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/oliviablog.github.io/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/oliviablog.github.io/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://olive-2019.github.io/oliviablog.github.io/2023/11/30/%E6%95%B0%E6%8D%AE%E5%A4%84%E7%90%86%E5%BC%95%E6%93%8E/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/oliviablog.github.io/images/avatar.gif">
+      <meta itemprop="name" content="John Doe">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Hexo">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          数据处理引擎
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2023-11-30 11:12:19" itemprop="dateCreated datePublished" datetime="2023-11-30T11:12:19+08:00">2023-11-30</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2023-12-01 13:39:49" itemprop="dateModified" datetime="2023-12-01T13:39:49+08:00">2023-12-01</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>Hadoop、Spark、Flink</p>
+<span id="more"></span>
+<h1 id="Hadoop"><a href="#Hadoop" class="headerlink" title="Hadoop"></a>Hadoop</h1><p>Hadoop是一个开源的分布式存储和计算框架，用于处理大规模数据集。它是Apache Software Foundation的项目，旨在提供一种可靠、可扩展且容错的处理大数据的解决方案。Hadoop基于两个主要组件构建：Hadoop分布式文件系统（HDFS）和MapReduce计算模型。</p>
+<ol>
+<li><p>Hadoop分布式文件系统（HDFS）： HDFS是Hadoop的分布式文件系统，用于存储大规模数据集。它将数据划分成<strong>小块</strong>并分散存储在集群的多个节点上，提供高可靠性和容错性。HDFS的设计目标是支持大规模数据的分布式存储和快速访问。</p>
+</li>
+<li><p>MapReduce计算模型： MapReduce是Hadoop中的计算模型，用于在大规模数据集上并行执行计算任务。它通过将计算任务分为两个主要阶段来实现并行化处理：Map阶段和Reduce阶段。Map阶段负责将输入数据映射为键值对，然后Reduce阶段对这些键值对进行聚合和处理。这种模型能够有效地处理分布式存储的数据。</p>
+</li>
+</ol>
+<p>除了HDFS和MapReduce，Hadoop生态系统还包括许多其他项目和工具，如Hive（用于数据仓库和SQL查询）、Pig（用于数据流处理）、HBase（非关系型分布式数据库）、Spark（基于内存的分布式计算框架）等。这些工具共同构建了一个强大的大数据处理平台，使用户能够存储、处理和分析大规模数据集。</p>
+<h2 id="和GFS的区别"><a href="#和GFS的区别" class="headerlink" title="和GFS的区别"></a>和GFS的区别</h2><p>HDFS（Hadoop分布式文件系统）和GFS（Google文件系统）都是针对大规模数据的分布式文件系统，且在很大程度上受到了GFS的影响。</p>
+<p>HDFS是受到GFS启发而开发的，它们有一些相似之处，但也存在一些区别：</p>
+<ol>
+<li>设计目标：</li>
+</ol>
+<ul>
+<li>GFS是Google设计的用于支持其大规模数据处理需求的分布式文件系统，旨在处理海量数据并提供<strong>高吞吐量</strong>的访问。</li>
+<li>HDFS是Apache Hadoop项目中的组件，旨在为Hadoop生态系统（Map Reduce）提供分布式文件存储解决方案，以支持<strong>大数据处理和分析</strong>。</li>
+</ul>
+<ol start="2">
+<li>架构和特性：</li>
+</ol>
+<p>GFS和HDFS都采用了类似的架构，如主从架构、数据切块存储和数据冗余等。<br>HDFS在实现上借鉴了GFS的一些设计理念，但也做了一些调整以适应Hadoop生态系统的需求，例如，它更侧重于处理<strong>大量小文件</strong>，适合MapReduce处理方式，而GFS则更专注于<strong>大文件的高吞吐量</strong>访问。<br>开源和可用性：</p>
+<p>GFS是Google内部使用的专有文件系统，而HDFS是开源的，任何人都可以使用和修改。<br>虽然HDFS受到GFS的启发，并在很大程度上借鉴了其设计思想，但在实现和用途上有所不同，更适合于Hadoop生态系统的特定需求和使用场景。</p>
+<h1 id="Spark"><a href="#Spark" class="headerlink" title="Spark"></a>Spark</h1><p>Spark是一个开源的分布式计算系统，主要用于大数据处理和分析。它提供了高效的数据处理能力，支持在大规模数据集上进行复杂的数据处理任务，如数据清洗、数据转换、机器学习和图形处理等。Spark的一个关键特点是其<strong>内存计算</strong>能力，能够在内存中进行数据处理，大大提高了处理速度和性能。它支持多种编程语言接口，如Scala、Java、Python和R，使得开发者可以使用自己熟悉的语言来进行大数据处理。</p>
+<h2 id="和Hadoop的区别"><a href="#和Hadoop的区别" class="headerlink" title="和Hadoop的区别"></a>和Hadoop的区别</h2><p>Spark和Hadoop都是用于大数据处理的工具，但它们有一些区别：</p>
+<ol>
+<li>数据处理模型：</li>
+</ol>
+<p>Hadoop使用基于磁盘的存储和处理模型，主要依赖Hadoop分布式文件系统（HDFS）来存储数据，并使用MapReduce进行数据处理。<br>Spark则使用内存计算，它能够将数据存储在内存中，并利用弹性分布式数据集（RDD）来实现并行处理，从而提供更快的数据处理速度。</p>
+<ol start="2">
+<li>性能：</li>
+</ol>
+<p>由于Spark使用内存计算，它通常比Hadoop的MapReduce处理速度更快，特别是对于需要迭代计算或需要多次访问同一数据集的任务。</p>
+<ol start="3">
+<li>适用场景：</li>
+</ol>
+<p>Hadoop适用于批处理任务，特别是对于大规模数据的批量处理和分析。<br>Spark则更灵活，不仅支持批处理，还支持交互式查询、流式处理和机器学习等多种处理模式。</p>
+<ol start="4">
+<li>API和语言支持：</li>
+</ol>
+<p>Hadoop的主要编程模型是MapReduce，而Spark提供了更多的API和丰富的编程接口，支持多种编程语言，包括Scala、Java、Python和R。<br>总的来说，Spark在性能和处理模型的灵活性上有优势，尤其适用于需要迭代计算或需要多次访问数据的任务。但Hadoop作为一个可靠的大数据处理框架，仍然在某些场景下有其独特的优势和应用价值。</p>
+<h2 id="RDD"><a href="#RDD" class="headerlink" title="RDD"></a>RDD</h2><p>RDD（Resilient Distributed Dataset）是Spark中的一个核心概念，它是一种分布式的、不可变的数据结构，用于在大规模集群上进行并行处理。RDD被设计为容错的、具有弹性的数据集合，可以在计算过程中进行分区和并行操作。</p>
+<p>要理解RDD，可以考虑以下关键特性：</p>
+<ol>
+<li><p>分布式： RDD将数据<strong>分布</strong>在集群的多个节点上，允许<strong>并行</strong>处理。每个RDD被划分为多个分区，每个分区可以在不同的节点上进行计算。</p>
+</li>
+<li><p>不可变性： RDD是<strong>不可变</strong>的数据结构，这意味着一旦创建，就不能被修改。如果需要对RDD进行转换，会生成一个新的RDD，而原始RDD保持不变。这有助于确保数据的<strong>一致性和容错性</strong>。</p>
+</li>
+<li><p>弹性： RDD是<strong>弹性</strong>的，即在计算过程中能够从故障中<strong>自动恢复</strong>。如果某个分区的数据在计算过程中丢失，Spark可以通过RDD的血统信息<strong>重新计算</strong>该分区。</p>
+</li>
+<li><p>惰性计算： RDD采用<strong>惰性</strong>计算模型，也就是说，转换操作不会立即执行，而是在遇到<strong>行动操作</strong>（如collect、count等）时才会触发计算。这有助于Spark<strong>优化执行计划</strong>，提高性能。</p>
+</li>
+</ol>
+<p>RDD是Spark中数据的抽象表示，它可以通过一系列的转换操作（如map、filter、reduce等）来构建数据处理流水线。RDD的引入使得Spark能够处理大规模数据集，并提供高性能的分布式计算。</p>
+<h1 id="Flink"><a href="#Flink" class="headerlink" title="Flink"></a>Flink</h1><p>流式处理引擎，专注于处理实时流数据和批量数据。它提供了高性能、高吞吐量和低延迟的流处理能力，并且能够以统一的方式处理批处理和流式处理任务。</p>
+<ol>
+<li>处理模型和性能：</li>
+</ol>
+<p>Hadoop最初使用MapReduce处理模型，其核心思想是将数据存储在HDFS（Hadoop分布式文件系统）中，并使用MapReduce进行数据处理。Spark使用内存计算能力，能够在内存中进行数据处理，因此通常比Hadoop的MapReduce处理速度更快。Flink也支持实时流处理，并提供了比Spark更低的延迟和更好的事件时间处理能力。<br>2. 处理方式：</p>
+<p>Hadoop主要适用于批处理任务，对大规模数据的批量处理和分析有较好的支持。Spark除了批处理外，还支持交互式查询、流处理和机器学习等多种处理模式。Flink也同时支持批处理和流式处理，并将两者统一为一个引擎。<br>3. API和语言支持：</p>
+<p>Hadoop的主要编程模型是MapReduce，而Spark提供了更多的API和丰富的编程接口，支持多种编程语言（如Scala、Java、Python和R）。Flink也支持多种语言的API。<br>4. 内存计算：</p>
+<p>Spark和Flink都支持内存计算，可以将数据存储在内存中，提高数据处理速度和性能。Hadoop MapReduce则主要基于磁盘进行数据处理。<br>5. 状态管理和容错性：</p>
+<p>Flink在状态管理和容错性方面相对更强大，能够处理更复杂的状态和更精确的事件处理，而且在节点故障时能够保持更可靠的容错性。</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/oliviablog.github.io/tags/%E5%88%86%E5%B8%83%E5%BC%8F/" rel="tag"># 分布式</a>
+              <a href="/oliviablog.github.io/tags/Hadoop/" rel="tag"># Hadoop</a>
+              <a href="/oliviablog.github.io/tags/Spark/" rel="tag"># Spark</a>
+              <a href="/oliviablog.github.io/tags/Flink/" rel="tag"># Flink</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/oliviablog.github.io/2023/11/29/Diffusers/" rel="prev" title="Diffusers">
+      <i class="fa fa-chevron-left"></i> Diffusers
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/oliviablog.github.io/2023/11/30/%E5%B0%8F%E7%99%BD%E4%B9%9F%E8%83%BD%E7%9C%8B%E6%87%82%E7%9A%84Raft%E5%8D%8F%E8%AE%AE/" rel="next" title="小白也能看懂的Raft协议">
+      小白也能看懂的Raft协议 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Hadoop"><span class="nav-number">1.</span> <span class="nav-text">Hadoop</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%92%8CGFS%E7%9A%84%E5%8C%BA%E5%88%AB"><span class="nav-number">1.1.</span> <span class="nav-text">和GFS的区别</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Spark"><span class="nav-number">2.</span> <span class="nav-text">Spark</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%92%8CHadoop%E7%9A%84%E5%8C%BA%E5%88%AB"><span class="nav-number">2.1.</span> <span class="nav-text">和Hadoop的区别</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#RDD"><span class="nav-number">2.2.</span> <span class="nav-text">RDD</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Flink"><span class="nav-number">3.</span> <span class="nav-text">Flink</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">John Doe</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/oliviablog.github.io/archives/">
+        
+          <span class="site-state-item-count">24</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/oliviablog.github.io/tags/">
+          
+        <span class="site-state-item-count">25</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">John Doe</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/oliviablog.github.io/lib/anime.min.js"></script>
+  <script src="/oliviablog.github.io/lib/velocity/velocity.min.js"></script>
+  <script src="/oliviablog.github.io/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/oliviablog.github.io/js/utils.js"></script>
+
+<script src="/oliviablog.github.io/js/motion.js"></script>
+
+
+<script src="/oliviablog.github.io/js/schemes/muse.js"></script>
+
+
+<script src="/oliviablog.github.io/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+<script>
+if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8/dist/mermaid.min.js', () => {
+    mermaid.initialize({
+      theme    : 'forest',
+      logLevel : 3,
+      flowchart: { curve     : 'linear' },
+      gantt    : { axisFormat: '%m/%d/%Y' },
+      sequence : { actorMargin: 50 }
+    });
+  }, window.mermaid);
+}
+</script>
+
+
+  
+
+  
+
+</body>
+</html>
